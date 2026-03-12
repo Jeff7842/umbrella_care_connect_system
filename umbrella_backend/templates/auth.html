@@ -1,4 +1,3 @@
-{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +9,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'assets/css/auth.css' %}">
+  <link rel="stylesheet" href="../static/assets/css/auth.css">
 </head>
 <body class="light-mode">
   <div class="auth-wrapper">
@@ -50,12 +49,12 @@
             </div>
             <div class="row g-3 mb-3">
               <div class="col">
-                <select class="form-select">
+                <select class="form-select" name="country">
                   <option>country</option><option>Kenya</option><option>Uganda</option>
                 </select>
               </div>
               <div class="col">
-                <select class="form-select">
+                <select class="form-select" name="city">
                   <option>city</option><option>Nairobi</option><option>Kiambu</option>
                 </select>
               </div>
@@ -263,7 +262,9 @@
     .auth-col { display: flex; flex-direction: column; }
     .decor-panel { flex: 1; border-radius:0px; margin: 0; min-height: 550px; }
     .form-panel { width: 100%; }
-    .auth-wrapper { backdrop-filter: blur(16px); }
+    .auth-wrapper { -webkit-backdrop-filter: blur(16px); 
+      backdrop-filter: blur(16px); 
+    }
     .country-code select { background: transparent; color: var(--text); border: none; }
     input::placeholder { color: var(--text); opacity: 0.5; }
   </style>
