@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pledge Support | Umbrella Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/needs.css" />
+  <script src="assets/js/client-navbar.js" type="text/javascript" defer></script>
+  <style>
+    .flow-shell { padding: 34px 0 90px; }
+    .flow-card {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .flow-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .flow-tag {
+      display: inline-flex;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      font-weight: 800;
+    }
+    .flow-title {
+      margin: 0 0 6px;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+    }
+    .flow-subtext {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .pledge-need-box {
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--brand-soft) 26%, var(--white) 74%);
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+    .pledge-need-box h3 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+    .pledge-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .form-field label {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      min-height: 56px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      color: var(--text);
+      padding: 14px 16px;
+      outline: none;
+    }
+    .form-field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .choice-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .choice-pill {
+      position: relative;
+    }
+    .choice-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .choice-pill span {
+      min-height: 52px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .choice-pill input:checked + span {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+      box-shadow: 0 0 0 4px var(--green-soft);
+    }
+    .split-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .check-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .submit-btn {
+      width: 100%;
+      height: 60px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color: white;
+      font-weight: 900;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .helper-note {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-top: -6px;
+      margin-bottom: 12px;
+    }
+    .hidden { display:none !important; }
+    @media (max-width: 768px) {
+      .pledge-grid,
+      .split-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="light-mode">
+    <main-navbar-component></main-navbar-component>
+  <div class="flow-shell container">
+    <div class="flow-card">
+      <div class="flow-top">
+        <div>
+          <span class="flow-tag">Pledge Support</span>
+          <h1 class="flow-title">Make a timed pledge</h1>
+          <p class="flow-subtext">
+            Set a pledge for a specific need. Minimum interval is 2 days, maximum interval is 2 months.
+            The donor must confirm the need, account, payment method and pledge schedule before proceeding.
+          </p>
+        </div>
+        <a href="needs.html" class="theme-toggle" style="text-decoration:none;">
+          <i class="bi bi-arrow-left"></i>
+          <span>Back to Needs</span>
+        </a>
+      </div>
+
+      <div class="pledge-need-box" id="pledgeNeedBox">
+        <h3>Loading selected need...</h3>
+        <p>Please wait while the selected need is resolved.</p>
+      </div>
+
+      <form id="pledgeForm">
+        <div class="pledge-grid">
+          <div class="form-field">
+            <label for="accountSelect">Select account</label>
+            <select id="accountSelect" required>
+              <option value="">Choose your donor account</option>
+              <option value="personal-main">Jeff Main Account</option>
+              <option value="family-account">Family Support Account</option>
+              <option value="company-impact">Company Impact Account</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="pledgeAmount">Pledge amount (KES)</label>
+            <input type="number" id="pledgeAmount" min="50" max="5000000" step="50" placeholder="Enter pledge amount" required>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Pledge interval</label>
+          <div class="choice-group" id="intervalChoices">
+            <label class="choice-pill"><input type="radio" name="interval" value="2 days" checked><span>2 Days</span></label>
+            <label class="choice-pill"><input type="radio" name="interval" value="3 days"><span>3 Days</span></label>
+            <label class="choice-pill"><input type="radio" name="interval" value="2 weeks"><span>2 Weeks</span></label>
+            <label class="choice-pill"><input type="radio" name="interval" value="1 month"><span>1 Month</span></label>
+            <label class="choice-pill"><input type="radio" name="interval" value="2 months"><span>2 Months</span></label>
+          </div>
+          <div class="helper-note">
+            This pledge will be recorded against the selected need and linked to the donor account chosen above.
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Payment method</label>
+          <div class="choice-group" id="paymentMethodGroup">
+            <label class="choice-pill"><input type="radio" name="paymentMethod" value="mpesa" checked><span>M-Pesa</span></label>
+            <label class="choice-pill"><input type="radio" name="paymentMethod" value="card"><span>Card</span></label>
+            <label class="choice-pill"><input type="radio" name="paymentMethod" value="paypal"><span>PayPal</span></label>
+          </div>
+        </div>
+
+        <div id="paymentFields"></div>
+
+        <div class="split-row">
+          <div class="form-field">
+            <label for="startDate">Pledge start date</label>
+            <input type="date" id="startDate" required>
+          </div>
+
+          <div class="form-field">
+            <label for="referenceName">Account holder name</label>
+            <input type="text" id="referenceName" placeholder="Enter account holder name" required>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="pledgeMessage">Message / note</label>
+          <textarea id="pledgeMessage" placeholder="Optional note about this pledge"></textarea>
+        </div>
+
+        <label class="check-wrap">
+          <input type="checkbox" id="consentCheck" required>
+          <span>I confirm that this pledge is for the selected need, I authorize the saved pledge schedule, and I accept the pledge terms and policy.</span>
+        </label>
+
+        <label class="check-wrap">
+          <input type="checkbox" id="termsCheck" required>
+          <span>I understand that payment provider requirements may vary and additional verification may be needed after backend integration.</span>
+        </label>
+
+        <button type="submit" class="submit-btn">Pledge Now</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="flowModal">
+    <div class="modal-card" id="flowModalCard">
+      <div class="modal-icon" id="flowModalIcon"><i class="bi bi-check2-circle"></i></div>
+      <h3 id="flowModalTitle">Pledge received</h3>
+      <p id="flowModalText">Your pledge has been created successfully.</p>
+      <button type="button" class="modal-btn" id="flowModalClose">Close</button>
+    </div>
+  </div>
+
+  <script src="needs.js"></script>
+  <script>
+    const flowModal = document.getElementById("flowModal");
+    const flowModalCard = document.getElementById("flowModalCard");
+    const flowModalIcon = document.getElementById("flowModalIcon");
+    const flowModalTitle = document.getElementById("flowModalTitle");
+    const flowModalText = document.getElementById("flowModalText");
+    const flowModalClose = document.getElementById("flowModalClose");
+    const pledgeNeedBox = document.getElementById("pledgeNeedBox");
+    const paymentFields = document.getElementById("paymentFields");
+    const pledgeForm = document.getElementById("pledgeForm");
+    const pledgeAmount = document.getElementById("pledgeAmount");
+
+    const params = new URLSearchParams(window.location.search);
+    const needId = params.get("need") || localStorage.getItem("selectedNeedId");
+    const presetAmount = localStorage.getItem("selectedAmount");
+    const selectedNeed = (window.UMBRELLA_NEEDS || []).find(item => item.id === needId);
+
+    function openFlowModal(type, title, text) {
+      flowModalCard.classList.remove("error");
+      flowModalIcon.innerHTML = type === "error"
+        ? '<i class="bi bi-x-circle"></i>'
+        : '<i class="bi bi-check2-circle"></i>';
+
+      if (type === "error") flowModalCard.classList.add("error");
+      flowModalTitle.textContent = title;
+      flowModalText.textContent = text;
+      flowModal.classList.remove("hidden");
+    }
+
+    function closeFlowModal() {
+      flowModal.classList.add("hidden");
+    }
+
+    function renderNeedSummary() {
+      if (!selectedNeed) {
+        pledgeNeedBox.innerHTML = `
+          <h3>Need not found</h3>
+          <p>The selected need could not be resolved. Return to the needs page and try again.</p>
+        `;
+        return;
+      }
+
+      pledgeNeedBox.innerHTML = `
+        <h3>You are pledging toward: ${selectedNeed.title}</h3>
+        <p>${selectedNeed.description}</p>
+        <p><strong>Current progress:</strong> ${window.UMBRELLA_UTILS.formatKES(selectedNeed.raised)} raised out of ${selectedNeed.goal.toLocaleString("en-KE")}</p>
+      `;
+    }
+
+    function renderPaymentFields(method) {
+      if (method === "mpesa") {
+        paymentFields.innerHTML = `
+          <div class="split-row">
+            <div class="form-field">
+              <label for="mpesaPhone">M-Pesa phone number</label>
+              <input type="tel" id="mpesaPhone" placeholder="+254 7XX XXX XXX" required>
+            </div>
+            <div class="form-field">
+              <label for="mpesaName">Registered M-Pesa name</label>
+              <input type="text" id="mpesaName" placeholder="Enter registered M-Pesa name" required>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (method === "card") {
+        paymentFields.innerHTML = `
+          <div class="split-row">
+            <div class="form-field">
+              <label for="cardNumber">Card number</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+            </div>
+            <div class="form-field">
+              <label for="cardExpiry">Expiry date</label>
+              <input type="text" id="cardExpiry" placeholder="MM/YY" required>
+            </div>
+          </div>
+          <div class="split-row">
+            <div class="form-field">
+              <label for="cardCvv">CVV</label>
+              <input type="password" id="cardCvv" placeholder="CVV" required>
+            </div>
+            <div class="form-field">
+              <label for="billingCountry">Billing country</label>
+              <input type="text" id="billingCountry" placeholder="Enter billing country" required>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      paymentFields.innerHTML = `
+        <div class="split-row">
+          <div class="form-field">
+            <label for="paypalEmail">PayPal email</label>
+            <input type="email" id="paypalEmail" placeholder="Enter PayPal email" required>
+          </div>
+          <div class="form-field">
+            <label for="paypalName">PayPal account name</label>
+            <input type="text" id="paypalName" placeholder="Enter PayPal account name" required>
+          </div>
+        </div>
+      `;
+    }
+
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(input => {
+      input.addEventListener("change", e => renderPaymentFields(e.target.value));
+    });
+
+    pledgeForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (!selectedNeed) {
+        openFlowModal("error", "Pledge failed", "No valid need is attached to this pledge.");
+        return;
+      }
+
+      const selectedInterval = document.querySelector('input[name="interval"]:checked')?.value;
+      const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+      const amount = Number(pledgeAmount.value);
+
+      if (!amount || amount < 50) {
+        openFlowModal("error", "Invalid amount", "Enter a valid pledge amount of at least KES 50.");
+        return;
+      }
+
+      const payload = {
+        need_id: selectedNeed.id,
+        donor_account: document.getElementById("accountSelect").value,
+        pledge_amount: amount,
+        pledge_interval: selectedInterval,
+        payment_method: selectedMethod,
+        start_date: document.getElementById("startDate").value,
+        account_holder_name: document.getElementById("referenceName").value,
+        message: document.getElementById("pledgeMessage").value,
+        consent: document.getElementById("consentCheck").checked,
+        terms: document.getElementById("termsCheck").checked
+      };
+
+      console.log("SEND TO DJANGO / SUPABASE:", payload);
+
+      openFlowModal(
+        "success",
+        "Pledge received",
+        `Your pledge for ${selectedNeed.title} has been prepared successfully. Connect this form to your Django endpoint and Supabase table to persist it.`
+      );
+
+      pledgeForm.reset();
+      renderPaymentFields("mpesa");
+    });
+
+    flowModalClose.addEventListener("click", closeFlowModal);
+    flowModal.addEventListener("click", (e) => {
+      if (e.target === flowModal) closeFlowModal();
+    });
+
+    if (presetAmount && presetAmount !== "custom") {
+      pledgeAmount.value = presetAmount;
+    }
+
+    renderNeedSummary();
+    renderPaymentFields("mpesa");
+  </script>
+</body>
+</html>

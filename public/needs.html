@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Needs | Umbrella Connect</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/needs.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <script src="assets/js/client-navbar.js" type="text/javascript" defer></script>
+</head>
+<body class="light-mode">
+    <main-navbar-component></main-navbar-component>
+  <header class="needs-header">
+    <div class="container">
+      <div class="needs-header-top">
+        <a href="index.html" class="brand">
+          <span class="brand-icon"><i class="bi bi-umbrella"></i></span>
+          <span>Umbrella Connect</span>
+        </a>
+
+        <button class="theme-toggle" id="themeToggle" type="button">
+          <i class="bi bi-moon-stars"></i>
+          <span>Light / Dark</span>
+        </button>
+      </div>
+
+      <div class="needs-hero">
+        <span class="hero-badge">Live Needs Board</span>
+        <h1>Support real needs with transparency.</h1>
+        <p>
+          Browse urgent needs, donate instantly, make a timed pledge, or open a need to
+          see the full story, donor comments, live progress and updates.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="needs-main">
+    <div class="container">
+      <section class="needs-toolbar">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="needSearch" placeholder="Search needs by title, status or keyword..." />
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <select id="statusFilter">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="urgent">Urgent</option>
+            <option value="closed">Closed</option>
+          </select>
+
+          <select id="sortFilter">
+            <option value="latest">Newest first</option>
+            <option value="target-high">Highest target</option>
+            <option value="progress-high">Highest progress</option>
+            <option value="donors-high">Most donors</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="needs-grid" id="needsGrid">
+        <!-- injected by JS -->
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-backdrop hidden" id="globalModal">
+    <div class="modal-card" id="globalModalCard">
+      <div class="modal-icon" id="globalModalIcon"><i class="bi bi-check2-circle"></i></div>
+      <h3 id="globalModalTitle">Success</h3>
+      <p id="globalModalText">Action completed successfully.</p>
+      <button type="button" class="modal-btn" id="closeModalBtn">Close</button>
+    </div>
+  </div>
+
+  <script src="assets/js/needs.js"></script>
+</body>
+</html>

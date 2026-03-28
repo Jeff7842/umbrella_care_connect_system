@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Need Details | Umbrella Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/needs.css" />
+  <script src="assets/js/client-navbar.js" type="text/javascript" defer></script>
+  <style>
+    .details-shell { padding: 34px 0 90px; }
+    .details-layout {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 24px;
+    }
+    .details-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .details-main {
+      padding: 0;
+    }
+    .details-image {
+      height: 420px;
+      position: relative;
+      overflow: hidden;
+    }
+    .details-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .details-status {
+      position:absolute; top:18px; left:18px;
+      padding:10px 18px; border-radius:999px;
+      background:#eaf9ee; color:#159447; border:1px solid #159447;
+      font-weight:900; text-transform:uppercase;
+    }
+    .details-body { padding: 24px; }
+    .details-body h1 { margin:0 0 12px; font-size:clamp(1.9rem,4vw,3rem); font-weight:900; }
+    .details-date { color:var(--muted); margin-bottom:18px; font-weight:600; }
+    .details-text { color:var(--muted); line-height:1.9; margin-bottom:22px; }
+    .metric-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:22px;
+    }
+    .metric-box {
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--brand-soft) 20%, var(--white) 80%);
+      border-radius:20px; padding:18px;
+    }
+    .metric-box small {
+      display:block; color:var(--muted); margin-bottom:6px; font-weight:700;
+    }
+    .metric-box strong {
+      font-size:1.15rem; font-weight:900;
+    }
+    .graph-box, .side-section {
+      padding:24px;
+    }
+    .section-title {
+      margin:0 0 14px; font-size:1.2rem; font-weight:900;
+    }
+    .bar-chart {
+      display:flex; align-items:flex-end; gap:12px;
+      min-height:240px; padding:14px 0 6px;
+    }
+    .bar-col {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+    }
+    .bar {
+      width:100%;
+      max-width:56px;
+      border-radius:16px 16px 8px 8px;
+      background:linear-gradient(180deg, var(--brand), var(--brand-dark));
+      min-height:20px;
+    }
+    .bar-label {
+      font-size:0.82rem;
+      color:var(--muted);
+      font-weight:700;
+      text-align:center;
+    }
+    .side-sticky {
+      position: sticky;
+      top: 20px;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+    .details-progress {
+      margin-bottom:18px;
+    }
+    .details-actions {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-top:18px;
+    }
+    .details-actions .action-btn:last-child {
+      grid-column:1 / -1;
+    }
+    .update-list, .comment-list {
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .update-item, .comment-item {
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px 16px;
+      background: color-mix(in srgb, var(--brand-soft) 14%, var(--white) 86%);
+    }
+    .comment-item strong {
+      display:block;
+      margin-bottom:6px;
+    }
+    .comment-form textarea {
+      width:100%;
+      min-height:120px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:var(--white);
+      color:var(--text);
+      padding:14px 16px;
+      outline:none;
+      resize:vertical;
+      margin-bottom:14px;
+    }
+    .comment-btn {
+      width:100%;
+      height:54px;
+      border:none;
+      border-radius:18px;
+      background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+    }
+    @media (max-width: 980px) {
+      .details-layout {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+      .details-actions {
+        grid-template-columns: 1fr;
+      }
+      .details-actions .action-btn:last-child {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <div class="container details-shell">
+    <div class="details-layout">
+      <section class="details-card details-main" id="detailsMain">
+        <div class="details-image">
+          <img id="detailsImage" src="" alt="">
+          <span class="details-status" id="detailsStatus">active</span>
+        </div>
+
+        <div class="details-body">
+          <h1 id="detailsTitle">Loading...</h1>
+          <div class="details-date" id="detailsDate"></div>
+          <p class="details-text" id="detailsDescription"></p>
+
+          <div class="metric-grid">
+            <div class="metric-box">
+              <small>Goal</small>
+              <strong id="detailsGoal">-</strong>
+            </div>
+            <div class="metric-box">
+              <small>Raised</small>
+              <strong id="detailsRaised">-</strong>
+            </div>
+            <div class="metric-box">
+              <small>Donors</small>
+              <strong id="detailsDonors">-</strong>
+            </div>
+          </div>
+
+          <div class="details-progress">
+            <div class="need-progress-row" id="detailsProgressText"></div>
+            <div class="progress-track" style="margin-top:10px;">
+              <div class="progress-fill" id="detailsProgressFill"></div>
+            </div>
+          </div>
+
+          <div class="graph-box">
+            <h3 class="section-title">Live update progress chart</h3>
+            <div class="bar-chart" id="barChart"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-sticky">
+        <div class="details-card side-section">
+          <h3 class="section-title">Why you should give</h3>
+          <p class="details-text" id="whyGiveText"></p>
+
+          <div class="details-actions">
+            <button class="action-btn btn-pledge" id="sidePledgeBtn">Pledge</button>
+            <button class="action-btn btn-donate" id="sideDonateBtn">Donate</button>
+            <button class="action-btn btn-details" onclick="window.location.href='needs.html'">Back to needs</button>
+          </div>
+        </div>
+
+        <div class="details-card side-section">
+          <h3 class="section-title">Live updates</h3>
+          <div class="update-list" id="updatesList"></div>
+        </div>
+
+        <div class="details-card side-section">
+          <h3 class="section-title">Comments</h3>
+          <div class="comment-list" id="commentsList"></div>
+
+          <form class="comment-form" id="commentForm" style="margin-top:16px;">
+            <textarea id="commentInput" placeholder="Leave a comment about this need..."></textarea>
+            <button type="submit" class="comment-btn">Post Comment</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="detailModal">
+    <div class="modal-card" id="detailModalCard">
+      <div class="modal-icon" id="detailModalIcon"><i class="bi bi-check2-circle"></i></div>
+      <h3 id="detailModalTitle">Comment posted</h3>
+      <p id="detailModalText">Your comment has been added locally.</p>
+      <button type="button" class="modal-btn" id="detailModalClose">Close</button>
+    </div>
+  </div>
+
+  <script src="needs.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const needId = params.get("need") || localStorage.getItem("selectedNeedId");
+    const selectedNeed = (window.UMBRELLA_NEEDS || []).find(item => item.id === needId);
+
+    const detailsImage = document.getElementById("detailsImage");
+    const detailsStatus = document.getElementById("detailsStatus");
+    const detailsTitle = document.getElementById("detailsTitle");
+    const detailsDate = document.getElementById("detailsDate");
+    const detailsDescription = document.getElementById("detailsDescription");
+    const detailsGoal = document.getElementById("detailsGoal");
+    const detailsRaised = document.getElementById("detailsRaised");
+    const detailsDonors = document.getElementById("detailsDonors");
+    const detailsProgressText = document.getElementById("detailsProgressText");
+    const detailsProgressFill = document.getElementById("detailsProgressFill");
+    const barChart = document.getElementById("barChart");
+    const whyGiveText = document.getElementById("whyGiveText");
+    const updatesList = document.getElementById("updatesList");
+    const commentsList = document.getElementById("commentsList");
+    const commentForm = document.getElementById("commentForm");
+    const commentInput = document.getElementById("commentInput");
+    const sidePledgeBtn = document.getElementById("sidePledgeBtn");
+    const sideDonateBtn = document.getElementById("sideDonateBtn");
+
+    const detailModal = document.getElementById("detailModal");
+    const detailModalCard = document.getElementById("detailModalCard");
+    const detailModalTitle = document.getElementById("detailModalTitle");
+    const detailModalText = document.getElementById("detailModalText");
+    const detailModalClose = document.getElementById("detailModalClose");
+
+    function showDetailModal(type, title, text) {
+      detailModalCard.classList.remove("error");
+      if (type === "error") detailModalCard.classList.add("error");
+      detailModalTitle.textContent = title;
+      detailModalText.textContent = text;
+      detailModal.classList.remove("hidden");
+    }
+
+    function renderDetails() {
+      if (!selectedNeed) {
+        document.body.innerHTML = '<div class="container" style="padding:40px 0;"><div class="no-results">Need not found. <a href="needs.html">Return to needs</a>.</div></div>';
+        return;
+      }
+
+      const percentage = Math.min(100, Math.round((selectedNeed.raised / selectedNeed.goal) * 100));
+
+      detailsImage.src = selectedNeed.image;
+      detailsImage.alt = selectedNeed.title;
+      detailsStatus.textContent = selectedNeed.status;
+      detailsTitle.textContent = selectedNeed.title;
+      detailsDate.textContent = `Date: ${selectedNeed.date}`;
+      detailsDescription.textContent = selectedNeed.description;
+      detailsGoal.textContent = window.UMBRELLA_UTILS.formatKES(selectedNeed.goal);
+      detailsRaised.textContent = window.UMBRELLA_UTILS.formatKES(selectedNeed.raised);
+      detailsDonors.textContent = selectedNeed.donors.toLocaleString("en-KE");
+      detailsProgressText.innerHTML = `<span class="raised">${window.UMBRELLA_UTILS.formatKES(selectedNeed.raised)}</span> out of ${selectedNeed.goal.toLocaleString("en-KE")}`;
+      detailsProgressFill.style.width = percentage + "%";
+
+      whyGiveText.textContent = `This need directly improves the children's quality of life. Funding ${selectedNeed.title.toLowerCase()} is not cosmetic. It solves an actual operational gap at the home, reduces risk, improves dignity and stabilizes daily care.`
+
+      barChart.innerHTML = selectedNeed.graph.map((value, index) => {
+        const highest = Math.max(...selectedNeed.graph);
+        const height = Math.max(20, (value / highest) * 190);
+        return `
+          <div class="bar-col">
+            <div class="bar" style="height:${height}px;"></div>
+            <div class="bar-label">Wk ${index + 1}</div>
+          </div>
+        `;
+      }).join("");
+
+      updatesList.innerHTML = selectedNeed.updates.map(item => `
+        <div class="update-item">${item}</div>
+      `).join("");
+
+      commentsList.innerHTML = selectedNeed.comments.map(item => `
+        <div class="comment-item">
+          <strong>${item.name}</strong>
+          <span>${item.text}</span>
+        </div>
+      `).join("");
+    }
+
+    commentForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const value = commentInput.value.trim();
+
+      if (!value) {
+        showDetailModal("error", "Empty comment", "Write a comment before posting.");
+        return;
+      }
+
+      const newComment = { name: "You", text: value };
+      selectedNeed.comments.unshift(newComment);
+      renderDetails();
+      commentInput.value = "";
+
+      console.log("SEND COMMENT TO BACKEND:", {
+        need_id: selectedNeed.id,
+        comment: value
+      });
+
+      showDetailModal("success", "Comment posted", "Your comment was added on the frontend. Persist it through your Django API and Supabase comments table.");
+    });
+
+    sidePledgeBtn.addEventListener("click", () => {
+      localStorage.setItem("selectedNeedId", selectedNeed.id);
+      window.location.href = `pledge.html?need=${encodeURIComponent(selectedNeed.id)}`;
+    });
+
+    sideDonateBtn.addEventListener("click", () => {
+      localStorage.setItem("selectedNeedId", selectedNeed.id);
+      window.location.href = `donate.html?need=${encodeURIComponent(selectedNeed.id)}&mode=custom`;
+    });
+
+    detailModalClose.addEventListener("click", () => {
+      detailModal.classList.add("hidden");
+    });
+
+    detailModal.addEventListener("click", (e) => {
+      if (e.target === detailModal) detailModal.classList.add("hidden");
+    });
+
+    renderDetails();
+  </script>
+</body>
+</html>
