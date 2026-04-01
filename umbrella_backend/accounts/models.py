@@ -6,11 +6,8 @@ from django.utils.timesince import timesince
 class UserManagement(models.Model):
     ROLE_CHOICES = [
         ("admin", "Admin"),
-        ("super-admin", "Super Admin"),
-        ("staff", "Staff"),
-        ("auditor", "Auditor"),
-        ("communications", "Communications"),
-        ("director", "Director"),
+        ("donor", "Donor"),
+        ("volunteer", "Volunteer"),
     ]
 
     STATUS_CHOICES = [
@@ -30,7 +27,7 @@ class UserManagement(models.Model):
     profile_photo = models.TextField(blank=True, null=True)
     reg_code = models.CharField(max_length=20, unique=True)
 
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="staff")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="donor")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="paused")
     verified = models.BooleanField(default=False)
 
