@@ -39,6 +39,7 @@
         }
         /* navbar dynamic */
         .navbar {
+            -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
             background: var(--nav-bg) !important;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
@@ -81,6 +82,7 @@
         /* dropdown needs menu */
         .dropdown-menu {
             background: var(--nav-bg);
+            -webkit-backdrop-filter: blur(16px);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 24px;
@@ -123,7 +125,9 @@
         .symbol-title{
             color:#F4A623;
         }
-        .hero .lead { font-size: 1.35rem; max-width: 650px; margin: 1.5rem auto; font-weight: 400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); padding: 0.8rem 1.8rem; border-radius: 60px; color: #fff; }
+        .hero .lead { font-size: 1.35rem; max-width: 650px; margin: 1.5rem auto; font-weight: 400; background: rgba(0,0,0,0.3); 
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px); padding: 0.8rem 1.8rem; border-radius: 60px; color: #fff; }
         .btn-outline-brand {
             border: 2px solid white;
             background: transparent;
@@ -132,6 +136,7 @@
             padding: 0.8rem 2.5rem;
             font-weight: 600;
             margin: 0.5rem;
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             transition: 0.25s;
         }
@@ -188,6 +193,7 @@
         /* footer */
         .footer {
             background: rgba(0,0,0,0.2);
+            -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
             border-top: 1px solid rgba(255,255,255,0.05);
             padding: 2rem 0;
