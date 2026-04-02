@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from .models import Donation
 from .forms import DonationForm
+from stock.services import add_stock_from_donation
 
 
 def donation_list_view(request):
@@ -13,7 +14,13 @@ def donation_create_view(request):
     if request.method == "POST":
         form = DonationForm(request.POST)
         if form.is_valid():
-            form.save()
+            donation = form.save()
+
+            add_stock_from_donation(
+                donation,
+                user=request.user if request.user.is_authenticated else None
+            )
+
             messages.success(request, "Donation recorded successfully.")
             return redirect("donation_list")
     else:

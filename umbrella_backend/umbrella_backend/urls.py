@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path("needs/", include("needs.urls")),
     path("donations/", include("donations.urls")),
+    path("stock/", include("stock.urls")),
 ]

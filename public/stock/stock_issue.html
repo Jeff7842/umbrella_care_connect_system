@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Issue Stock</title>
+</head>
+<body>
+    <h1>Issue Stock</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            {{ form.stock_item.label_tag }}<br>
+            {{ form.stock_item }}
+            {% for error in form.stock_item.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.quantity.label_tag }}<br>
+            {{ form.quantity }}
+            {% for error in form.quantity.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.notes.label_tag }}<br>
+            {{ form.notes }}
+            {% for error in form.notes.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <button type="submit">Issue Stock</button>
+    </form>
+
+    <p><a href="{% url 'stock_list' %}">Back to Stock List</a></p>
+</body>
+</html>
