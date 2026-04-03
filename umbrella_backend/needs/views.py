@@ -39,6 +39,8 @@ def needs_page(request):
 
 
 def serialize_need(need):
+    donors_list = need.donors if isinstance(need.donors, list) else []
+
     return {
         "id": str(need.id),
         "title": need.title,
@@ -47,7 +49,7 @@ def serialize_need(need):
         "quantity_required": float(need.amount_needed),
         "quantity_fulfilled": float(need.amount_received),
         "quantity_remaining": float(need.amount_needed - need.amount_received),
-        "priority": "-",  # your Supabase table currently has no priority column
+        "priority": "-",  # not present in current Supabase-backed table
         "deadline": need.expiring_at.date().isoformat() if need.expiring_at else None,
         "status": need.status,
         "posted_by_name": None,
@@ -58,6 +60,11 @@ def serialize_need(need):
         "unit": need.unit,
         "need_type": need.need_type,
         "needs_registration_code": need.needs_registration_code,
+        "image_url": need.image_url,
+        "donors": donors_list,
+        "donors_count": len(donors_list),
+        "amount_needed": float(need.amount_needed),
+        "amount_received": float(need.amount_received),
     }
 
 
@@ -102,15 +109,20 @@ def needs_api(request):
             expiring_at = datetime.fromisoformat(f"{data['deadline']}T00:00:00")
 
         need = NeedRecord.objects.create(
+            needs_registration_code=data.get("needs_registration_code") or f"NEED-{timezone.now().strftime('%Y%m%d%H%M%S')}",
             title=(data.get("title") or "").strip(),
             description=data.get("description", ""),
             amount_needed=data.get("quantity_required", 0),
             amount_received=data.get("quantity_fulfilled", 0),
             status=data.get("status", "pending"),
             expiring_at=expiring_at,
-            need_type="in_kind",
-            unit="units",
-            donors=[],
+            need_type=data.get("need_type", "in_kind"),
+            unit=data.get("unit", "units"),
+            image_url=data.get("image_url", ""),
+            donors=data.get("donors", []),
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+            date=timezone.now().date(),
         )
 
         return JsonResponse(
@@ -156,6 +168,14 @@ def need_detail_api(request, need_id):
                 )
             if "status" in data:
                 need.status = data["status"]
+            if "need_type" in data:
+                need.need_type = data["need_type"]
+            if "unit" in data:
+                need.unit = data["unit"]
+            if "image_url" in data:
+                need.image_url = data["image_url"]
+            if "donors" in data and isinstance(data["donors"], list):
+                need.donors = data["donors"]
 
             need.updated_at = timezone.now()
             need.save()

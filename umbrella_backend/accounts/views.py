@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.db.models import Q, F
 from django.contrib.sessions.backends.db import SessionStore
+from django.shortcuts import render, get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -146,3 +147,37 @@ class UserFreezeAPIView(APIView):
         user.save(update_fields=["status", "suspended_at", "updated_at"])
 
         return Response({"message": "User paused successfully"})
+
+class UserChangePasswordAPIView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request, user_id):
+        user = get_object_or_404(UserManagement, id=user_id, is_active=True)
+
+        current_password = request.data.get("current_password")
+        new_password = request.data.get("new_password")
+
+        if not current_password or not new_password:
+            return Response({"message": "Current password and new password are required."}, status=400)
+
+        if len(new_password) < 8:
+            return Response({"message": "New password must be at least 8 characters."}, status=400)
+
+        stored_hash = (user.password_hash or "").encode("utf-8")
+        current_password_bytes = current_password.encode("utf-8")
+
+        try:
+            password_matches = bcrypt.checkpw(current_password_bytes, stored_hash)
+        except Exception:
+            password_matches = False
+
+        if not password_matches:
+            return Response({"message": "Current password is incorrect."}, status=400)
+
+        new_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        user.password_hash = new_hash
+        user.updated_at = timezone.now()
+        user.save(update_fields=["password_hash", "updated_at"])
+
+        return Response({"message": "Password updated successfully."}, status=200)

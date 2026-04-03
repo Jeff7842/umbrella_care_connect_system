@@ -7,9 +7,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
-  <script src="/assets/js/navbar.js" type="text/javascript" defer></script>
-  <script src="/assets/js/sidebar.js" type="text/javascript" defer></script>
-  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="assets/js/navbar.js" type="text/javascript" defer></script>
+  <script src="assets/js/sidebar.js" type="text/javascript" defer></script>
+  <link rel="stylesheet" href="assets/css/dashboard.css"/>
 </head>
 <body class="light-mode">
 <div class="admin-wrapper">
@@ -704,27 +704,215 @@
       <div class="user-table-footer">
         <div class="entries-count" id="userEntriesInfo">Showing 1 to 6 of 128 entries</div>
 
-        <div class="pagination-wrap">
-          <button class="page-btn">Prev</button>
-          <button class="page-btn">1</button>
-          <button class="page-btn active">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn dots">...</button>
-          <button class="page-btn">8</button>
-          <button class="page-btn">9</button>
-          <button class="page-btn">Next</button>
-        </div>
+        <div class="pagination-wrap" id="userPagination">
+  <button class="page-btn active">1</button>
+</div>
       </div>
     </div>
   </div>
 </section>
 
     <section class="app-page" data-page="settings">
-      <div class="page-header-card">
-        <div class="panel-title"><i class="bi bi-gear"></i> Settings</div>
-        <p class="text-mute mb-0">System settings page.</p>
+  <div class="settings-page-shell">
+    <div class="settings-hero-card">
+      <div class="settings-cover"></div>
+
+      <div class="settings-hero-content">
+        <div class="settings-profile-block">
+          <div class="settings-avatar-wrap">
+            <img
+              id="settingsProfilePhoto"
+              src="https://i.pravatar.cc/140?img=12"
+              alt="Profile photo"
+              class="settings-avatar"
+            />
+          </div>
+
+          <div class="settings-hero-text">
+            <h2 id="settingsFullName">User Settings</h2>
+            <p id="settingsEmailHero" class="text-mute mb-1">user@email.com</p>
+            <div class="settings-mini-badges">
+              <span class="settings-mini-pill" id="settingsRoleHero">Role</span>
+              <span class="settings-mini-pill" id="settingsStatusHero">Status</span>
+              <span class="settings-mini-pill" id="settingsVerifiedHero">Verification</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="settings-outline-btn" type="button" id="refreshSettingsBtn">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
       </div>
-    </section>
+
+      <div class="settings-tab-nav">
+        <button class="settings-tab-btn active" data-settings-tab="profile">Profile</button>
+        <button class="settings-tab-btn" data-settings-tab="details">My details</button>
+        <button class="settings-tab-btn" data-settings-tab="password">Password</button>
+      </div>
+    </div>
+
+    <div class="settings-content-card">
+      <div id="settingsMessage" class="settings-message is-hidden"></div>
+
+      <!-- PROFILE TAB -->
+      <div class="settings-tab-panel active" data-settings-panel="profile">
+        <div class="settings-section-head">
+          <div>
+            <h3>Profile</h3>
+            <p class="text-mute mb-0">Update the public-facing account identity for this dashboard user.</p>
+          </div>
+        </div>
+
+        <form id="settingsProfileForm" class="settings-form-grid">
+          <input type="hidden" id="settingsUserId" />
+
+          <div class="settings-form-group full-span">
+            <label for="settingsProfilePhotoInput">Profile photo URL</label>
+            <input type="url" id="settingsProfilePhotoInput" class="form-control" placeholder="https://example.com/photo.jpg" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsFirstName">First name</label>
+            <input type="text" id="settingsFirstName" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsLastName">Last name</label>
+            <input type="text" id="settingsLastName" class="form-control" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsUsername">Username</label>
+            <input type="text" id="settingsUsername" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsRole">Role</label>
+            <select id="settingsRole" class="form-control">
+              <option value="admin">Admin</option>
+              <option value="donor">Donor</option>
+              <option value="volunteer">Volunteer</option>
+            </select>
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsStatus">Status</label>
+            <select id="settingsStatus" class="form-control">
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="terminated">Terminated</option>
+            </select>
+          </div>
+
+          <div class="settings-form-group settings-check-group">
+            <label class="settings-check-label">
+              <input type="checkbox" id="settingsVerified" />
+              <span>Verified account</span>
+            </label>
+          </div>
+
+          <div class="settings-actions full-span">
+            <button type="button" class="settings-outline-btn" id="resetProfileSettingsBtn">Reset</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-check2-circle"></i> Save profile
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- DETAILS TAB -->
+      <div class="settings-tab-panel" data-settings-panel="details">
+        <div class="settings-section-head">
+          <div>
+            <h3>My details</h3>
+            <p class="text-mute mb-0">Operational account details pulled from your user table.</p>
+          </div>
+        </div>
+
+        <form id="settingsDetailsForm" class="settings-form-grid">
+          <div class="settings-form-group">
+            <label for="settingsEmail">Email address</label>
+            <input type="email" id="settingsEmail" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsPhone">Phone number</label>
+            <input type="text" id="settingsPhone" class="form-control" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsRegCode">Registration code</label>
+            <input type="text" id="settingsRegCode" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsFullNameReadOnly">Full name</label>
+            <input type="text" id="settingsFullNameReadOnly" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsCreatedAt">Created at</label>
+            <input type="text" id="settingsCreatedAt" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsLastSeen">Last seen</label>
+            <input type="text" id="settingsLastSeen" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group full-span">
+            <label for="settingsUpdatedAt">Last updated</label>
+            <input type="text" id="settingsUpdatedAt" class="form-control" disabled />
+          </div>
+
+          <div class="settings-actions full-span">
+            <button type="button" class="settings-outline-btn" id="resetDetailsSettingsBtn">Reset</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-save2"></i> Save details
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PASSWORD TAB -->
+      <div class="settings-tab-panel" data-settings-panel="password">
+        <div class="settings-section-head">
+          <div>
+            <h3>Password</h3>
+            <p class="text-mute mb-0">
+              Change the password for this account. This needs a dedicated backend endpoint.
+            </p>
+          </div>
+        </div>
+
+        <form id="settingsPasswordForm" class="settings-password-form">
+          <div class="settings-form-group">
+            <label for="settingsCurrentPassword">Current password</label>
+            <input type="password" id="settingsCurrentPassword" class="form-control" placeholder="Enter current password" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsNewPassword">New password</label>
+            <input type="password" id="settingsNewPassword" class="form-control" placeholder="Enter new password" required />
+            <small class="text-mute">Use at least 8 characters.</small>
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsConfirmPassword">Confirm new password</label>
+            <input type="password" id="settingsConfirmPassword" class="form-control" placeholder="Confirm new password" required />
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" class="settings-outline-btn" id="resetPasswordSettingsBtn">Cancel</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-shield-lock"></i> Update password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
 
     <section class="app-page" data-page="privacy">
       <div class="page-header-card">
@@ -734,118 +922,380 @@
     </section>
 
     <section class="app-page" data-page="calendar">
-      <div class="page-header-card">
-        <div class="panel-title"><i class="bi bi-calendar-day"></i>Calendar</div>
-        <p class="text-mute mb-0">Schedule and events page.</p>
+  <div class="page-header-card calendar-page-header">
+    <div class="calendar-header-shell">
+      <div>
+        <div class="panel-title"><i class="bi bi-calendar3"></i> Calendar</div>
+        <p class="text-mute mb-0">Manage schedules, drag events to reschedule, and switch between day, month and year views.</p>
       </div>
-    </section>
+
+      <div class="calendar-header-actions">
+        <button class="calendar-toolbar-btn" id="calendarTodayBtn" type="button">Today</button>
+
+        <div class="calendar-nav-group">
+          <button class="calendar-icon-btn" id="calendarPrevBtn" type="button" aria-label="Previous">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="calendar-icon-btn" id="calendarNextBtn" type="button" aria-label="Next">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="calendar-view-switch" id="calendarViewSwitch">
+          <button class="calendar-view-btn" data-view="day" type="button">Day</button>
+          <button class="calendar-view-btn active" data-view="month" type="button">Month</button>
+          <button class="calendar-view-btn" data-view="year" type="button">Year</button>
+        </div>
+
+        <button class="btn-user-add" id="openCalendarEventModal" type="button">
+          <i class="bi bi-plus-lg"></i> Add Event
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="calendar-layout-shell">
+    <aside class="calendar-sidebar-card">
+      <div class="calendar-sidebar-top">
+        <div class="calendar-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="calendarSearchInput" placeholder="Search event...">
+        </div>
+
+        <div class="calendar-mini-card">
+          <div class="calendar-mini-header">
+            <button class="calendar-mini-nav" id="calendarMiniPrev" type="button"><i class="bi bi-chevron-left"></i></button>
+            <div class="calendar-mini-title" id="calendarMiniTitle">August 2025</div>
+            <button class="calendar-mini-nav" id="calendarMiniNext" type="button"><i class="bi bi-chevron-right"></i></button>
+          </div>
+          <div class="calendar-mini-weekdays">
+            <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+          </div>
+          <div class="calendar-mini-grid" id="calendarMiniGrid"></div>
+        </div>
+      </div>
+
+      <div class="calendar-sidebar-bottom">
+        <div class="calendar-sidebar-section-title">My calendars</div>
+        <div class="calendar-color-legend" id="calendarLegendList"></div>
+      </div>
+    </aside>
+
+    <div class="calendar-main-card">
+      <div class="calendar-main-head">
+        <h3 id="calendarCurrentLabel">August 2025</h3>
+        <div class="calendar-head-summary text-mute" id="calendarSelectionSummary">Month schedule overview</div>
+      </div>
+
+      <div class="calendar-board" id="calendarBoard"></div>
+    </div>
+  </div>
+
+  <div class="calendar-modal-backdrop is-hidden" id="calendarEventModalBackdrop">
+    <div class="calendar-event-modal">
+      <div class="calendar-event-modal-header">
+        <div>
+          <h4 id="calendarModalTitle">New event</h4>
+          <p class="text-mute mb-0">Create or edit a schedule item.</p>
+        </div>
+        <button class="calendar-icon-btn" id="closeCalendarEventModal" type="button">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form id="calendarEventForm" class="calendar-event-form">
+        <input type="hidden" id="calendarEventId">
+
+        <label>
+          <span>Event name</span>
+          <input type="text" id="calendarEventTitle" required>
+        </label>
+
+        <div class="calendar-form-grid two-col">
+          <label>
+            <span>Start date</span>
+            <input type="date" id="calendarStartDate" required>
+          </label>
+          <label>
+            <span>End date</span>
+            <input type="date" id="calendarEndDate" required>
+          </label>
+        </div>
+
+        <div class="calendar-form-grid two-col" id="calendarTimeFields">
+          <label>
+            <span>Start time</span>
+            <input type="time" id="calendarStartTime">
+          </label>
+          <label>
+            <span>End time</span>
+            <input type="time" id="calendarEndTime">
+          </label>
+        </div>
+
+        <label class="calendar-check-row">
+          <input type="checkbox" id="calendarAllDay">
+          <span>All day</span>
+        </label>
+
+        <div class="calendar-form-grid two-col">
+          <label>
+            <span>Color</span>
+            <select id="calendarColor">
+              <option value="#2563eb">Blue</option>
+              <option value="#22c55e">Green</option>
+              <option value="#a855f7">Purple</option>
+              <option value="#ec4899">Pink</option>
+              <option value="#f59e0b">Amber</option>
+              <option value="#ef4444">Red</option>
+              <option value="#14b8a6">Teal</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select id="calendarStatus">
+              <option value="scheduled">Scheduled</option>
+              <option value="tentative">Tentative</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          <span>Description</span>
+          <textarea id="calendarDescription" rows="4" placeholder="Write event details..."></textarea>
+        </label>
+
+        <div class="calendar-modal-actions">
+          <button class="calendar-toolbar-btn danger-btn" id="deleteCalendarEventBtn" type="button">Delete</button>
+          <div class="calendar-modal-actions-right">
+            <button class="calendar-toolbar-btn" id="cancelCalendarEventBtn" type="button">Cancel</button>
+            <button class="btn-user-add" id="saveCalendarEventBtn" type="submit">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
 
     <section class="app-page" data-page="needs">
-  <div class="page-header-card">
-    <div class="panel-title"><i class="bi bi-basket2"></i> Needs</div>
-    <p class="text-mute mb-0">Manage posted needs, update quantities, and close fulfilled requests.</p>
+  <div class="page-header-card needs-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-basket2"></i> Needs
+        </div>
+        <p class="text-mute mb-0">
+          Manage posted needs in card and list view, edit live details, update cover image, and close fulfilled requests.
+        </p>
+      </div>
+
+      <button class="needs-tool-btn needs-add-btn" id="openNeedModalBtn" type="button">
+        <i class="bi bi-plus-lg"></i> Add Need
+      </button>
+    </div>
   </div>
 
   <div id="needMessage" style="display:none; margin: 12px 0; padding: 10px; border-radius: 8px;"></div>
 
-  <div class="page-header-card" style="margin-top: 16px;">
-    <form id="needForm">
-      <input type="hidden" id="needId">
-
-      <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
-        <div>
-          <label for="needTitle">Need Title</label>
-          <input type="text" id="needTitle" class="form-control" required>
+  <div class="needs-dashboard">
+    <div class="needs-table-shell">
+      <div class="needs-toolbar-top">
+        <div class="needs-tabs" id="needsTabs">
+          <button class="needs-tab active" data-needs-view="cards">Cards</button>
+          <button class="needs-tab" data-needs-view="list">List</button>
         </div>
 
-        <div>
-          <label for="needCategory">Category</label>
-          <input type="text" id="needCategory" class="form-control" placeholder="e.g. Food, Education, Medical">
-        </div>
-
-        <div>
-          <label for="needQuantityRequired">Quantity Required</label>
-          <input type="number" id="needQuantityRequired" class="form-control" required min="1">
-        </div>
-
-        <div>
-          <label for="needQuantityFulfilled">Quantity Fulfilled</label>
-          <input type="number" id="needQuantityFulfilled" class="form-control" value="0" min="0">
-        </div>
-
-        <div>
-          <label for="needPriority">Priority</label>
-          <select id="needPriority" class="form-control">
-  <option value="low">Low</option>
-  <option value="medium" selected>Medium</option>
-  <option value="high">High</option>
-  <option value="urgent">Urgent</option>
-</select>
-        </div>
-
-        <div>
-          <label for="needDeadline">Deadline</label>
-          <input type="date" id="needDeadline" class="form-control">
+        <div class="needs-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="needSearchInput" placeholder="Search needs by title">
         </div>
       </div>
 
-      <div style="margin-top: 12px;">
-        <label for="needDescription">Description</label>
-        <textarea id="needDescription" class="form-control" rows="4"></textarea>
+      <div class="needs-toolbar-bottom">
+        <div class="needs-left-tools">
+          <select id="needStatusFilter" class="needs-tool-select">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="partially_funded">Partially Funded</option>
+            <option value="fulfilled">Fulfilled</option>
+            <option value="expired">Expired</option>
+            <option value="closed">Closed</option>
+          </select>
+
+          <select id="needTypeFilter" class="needs-tool-select">
+            <option value="">All Types</option>
+            <option value="cash">Cash</option>
+            <option value="in_kind">In Kind</option>
+          </select>
+
+          <button class="needs-tool-btn" id="needRefreshBtn" type="button">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+
+        <div class="needs-right-tools">
+          <button class="needs-tool-btn" id="needsExportBtn" type="button">
+            <i class="bi bi-download"></i> Export CSV
+          </button>
+        </div>
       </div>
 
-      <div style="margin-top: 14px; display:flex; gap:10px;">
-        <button type="submit" id="needSubmitBtn" class="btn btn-primary">Save Need</button>
-        <button type="button" id="resetNeedBtn" class="btn btn-outline-secondary">Reset</button>
+      <div class="needs-content-switcher">
+        <!-- CARDS VIEW -->
+        <div class="needs-cards-view active" id="needsCardsView">
+          <div class="needs-cards-grid" id="needsCardsGrid">
+            <div class="text-muted">Loading needs...</div>
+          </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div class="needs-list-view" id="needsListView">
+          <div class="needs-table-scroll">
+            <table class="table needs-table align-middle mb-0" id="needsTable">
+              <thead>
+                <tr>
+                  <th style="width: 52px;">
+                    <input type="checkbox" id="selectAllNeeds">
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="title">
+                      Need <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="need_type">
+                      Type <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="quantity_required">
+                      Amount Needed <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="quantity_fulfilled">
+                      Amount Received <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="status">
+                      Status <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="deadline">
+                      Deadline <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="needsTableBody">
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">Loading needs...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </form>
+
+      <div class="needs-table-footer">
+  <div class="needs-entries-count" id="needEntriesInfo">Showing 0 to 0 of 0 entries</div>
+  <div class="needs-pagination" id="needPagination">
+    <button class="needs-page-btn active">1</button>
+  </div>
+</div>
+    </div>
   </div>
 
-  <div class="page-header-card" style="margin-top: 16px;">
-    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-      <input type="text" id="needSearchInput" class="form-control" placeholder="Search needs..." style="max-width: 260px;">
+  <!-- NEED MODAL -->
+  <div class="needs-modal-overlay" id="needModalOverlay">
+    <div class="needs-modal-card">
+      <div class="needs-modal-header">
+        <div>
+          <h3 id="needModalTitle">Add Need</h3>
+          <p class="text-mute mb-0">Create or update a need record.</p>
+        </div>
+        <button type="button" class="needs-modal-close" id="closeNeedModalBtn">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
 
-      <select id="needStatusFilter" class="form-control" style="max-width: 220px;">
-  <option value="">All Statuses</option>
-  <option value="active">Active</option>
-  <option value="pending">Pending</option>
-  <option value="partially_funded">Partially Funded</option>
-  <option value="fulfilled">Fulfilled</option>
-  <option value="expired">Expired</option>
-  <option value="closed">Closed</option>
-</select>
+      <form id="needForm" class="needs-modal-form">
+        <input type="hidden" id="needId">
 
-      <select id="needPriorityFilter" class="form-control" style="max-width: 220px;">
-  <option value="">All Priorities</option>
-  <option value="low">Low</option>
-  <option value="medium">Medium</option>
-  <option value="high">High</option>
-  <option value="urgent">Urgent</option>
-</select>
-    </div>
+        <div class="needs-form-grid">
+          <div class="needs-form-group full-span">
+            <label for="needTitle">Need Title</label>
+            <input type="text" id="needTitle" class="form-control" required>
+          </div>
 
-    <div id="needEntriesInfo" style="margin-top: 14px;">Showing 0 to 0 of 0 entries</div>
+          <div class="needs-form-group">
+            <label for="needType">Need Type</label>
+            <select id="needType" class="form-control">
+              <option value="in_kind">In Kind</option>
+              <option value="cash">Cash</option>
+            </select>
+          </div>
 
-    <div style="margin-top: 16px; overflow-x:auto;">
-      <table class="table" style="width:100%;">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Required</th>
-            <th>Fulfilled</th>
-            <th>Priority</th>
-            <th>Deadline</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="needsTableBody">
-          <tr>
-            <td colspan="8">Loading needs...</td>
-          </tr>
-        </tbody>
-      </table>
+          <div class="needs-form-group">
+            <label for="needStatus">Status</label>
+            <select id="needStatus" class="form-control">
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="partially_funded">Partially Funded</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="expired">Expired</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needQuantityRequired">Amount Needed</label>
+            <input type="number" id="needQuantityRequired" class="form-control" required min="0" step="0.01">
+          </div>
+
+          <div class="needs-form-group" style="display: none;">
+            <label for="needQuantityFulfilled">Amount Received</label>
+            <input type="number" id="needQuantityFulfilled" class="form-control" min="0" step="0.01" value="0">
+          </div>
+
+ <div class="needs-form-group">
+            <label for="needImageUrl">Cover Image URL</label>
+            <input type="url" id="needImageUrl" class="form-control" placeholder="https://...">
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needDeadline">Deadline</label>
+            <input type="date" id="needDeadline" class="form-control">
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needUnit">Unit</label>
+            <input type="text" id="needUnit" class="form-control" placeholder="e.g. beds, items, KES">
+          </div>
+
+         
+
+          <div class="needs-form-group full-span">
+            <label for="needDescription">Description</label>
+            <textarea id="needDescription" class="form-control" rows="4"></textarea>
+          </div>
+        </div>
+
+        <div class="needs-modal-actions">
+          <button type="button" id="resetNeedBtn" class="needs-tool-btn">Reset</button>
+          <button type="submit" id="needSubmitBtn" class="needs-tool-btn needs-save-btn">
+            Save Need
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </section>
@@ -1212,11 +1662,131 @@
     </section>
 
     <section class="app-page" data-page="volunteers">
-      <div class="page-header-card">
-        <div class="panel-title"><i class="bi bi-people"></i> Volunteers</div>
-        <p class="text-mute mb-0">Volunteer management page.</p>
+  <div class="page-header-card volunteer-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-people"></i> Volunteers
+        </div>
+        <p class="text-mute mb-0">
+          Manage volunteer records from the admin dashboard using live backend data.
+        </p>
       </div>
-    </section>
+    </div>
+  </div>
+
+  <div class="volunteer-dashboard">
+    <div class="volunteer-table-shell">
+      <div class="volunteer-toolbar-top">
+        <div class="volunteer-tabs" id="volunteerTabs">
+          <button class="volunteer-tab active" data-volunteer-tab="all">All</button>
+          <button class="volunteer-tab" data-volunteer-tab="active">Active</button>
+          <button class="volunteer-tab" data-volunteer-tab="inactive">Inactive</button>
+        </div>
+
+        <div class="volunteer-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="volunteerSearchInput" placeholder="Search by name, email, phone or skills">
+        </div>
+      </div>
+
+      <div class="volunteer-toolbar-bottom">
+        <div class="volunteer-left-tools">
+          <button class="volunteer-tool-btn" id="volunteerSortBtn" type="button">
+            <i class="bi bi-arrow-down-up"></i> Sorting
+          </button>
+
+          <select id="volunteerStatusFilter" class="volunteer-tool-select">
+            <option value="all">Filter status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+
+          <select id="volunteerSignupFilter" class="volunteer-tool-select">
+            <option value="all">Filter signups</option>
+            <option value="0">No signups</option>
+            <option value="1-5">1 - 5 signups</option>
+            <option value="6-10">6 - 10 signups</option>
+            <option value="10+">10+ signups</option>
+          </select>
+        </div>
+
+        <div class="volunteer-right-tools">
+          <button class="volunteer-tool-btn" id="volunteerExportBtn" type="button">
+            <i class="bi bi-download"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="volunteer-table-scroll">
+        <table class="table volunteer-table align-middle mb-0" id="volunteerTable">
+          <thead>
+            <tr>
+              <th class="sticky-base sticky-order-col">
+                <input type="checkbox" id="selectAllVolunteers">
+              </th>
+              <th class="sticky-base sticky-volunteer-col" data-col-key="volunteer">
+                <button class="volunteer-th-btn" data-sort-key="name">
+                  Volunteer <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="email">
+                <button class="volunteer-th-btn" data-sort-key="email">
+                  Email <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="phone">
+                <button class="volunteer-th-btn" data-sort-key="phone">
+                  Phone <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="skills">
+                <button class="volunteer-th-btn" data-sort-key="skills">
+                  Skills <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="availability">
+                <button class="volunteer-th-btn" data-sort-key="availability">
+                  Availability <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="signups_count">
+                <button class="volunteer-th-btn" data-sort-key="signups_count">
+                  Signups <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="status">
+                <button class="volunteer-th-btn" data-sort-key="is_active">
+                  Status <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="created_at">
+                <button class="volunteer-th-btn" data-sort-key="created_at">
+                  Joined <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="actions">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="volunteerTableBody">
+            <tr>
+              <td colspan="10" class="text-center py-4 text-muted">Loading volunteers...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="volunteer-table-footer">
+        <div class="volunteer-entries-count" id="volunteerEntriesInfo">Showing 0 to 0 of 0 entries</div>
+
+        <div class="volunteer-pagination" id="volunteerPagination">
+          <button class="volunteer-page-btn active">1</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
     <section class="app-page" data-page="stock">
   <div class="page-header-card stock-header-card">
@@ -1649,13 +2219,9 @@
       <div class="stock-table-footer">
         <div class="stock-entries-count" id="stockEntriesInfo">Showing 1 to 6 of 6 entries</div>
 
-        <div class="stock-pagination">
-          <button class="stock-page-btn">Prev</button>
-          <button class="stock-page-btn active">1</button>
-          <button class="stock-page-btn">2</button>
-          <button class="stock-page-btn">3</button>
-          <button class="stock-page-btn">Next</button>
-        </div>
+        <div class="stock-pagination" id="stockPagination">
+  <button class="stock-page-btn active">1</button>
+</div>
       </div>
     </div>
 
@@ -1672,9 +2238,119 @@
       <span>© 2026 Umbrella Connect - Admin panel</span>
       <span><i class="bi bi-arrow-repeat me-1"></i> last sync 10:32 AM</span>
     </footer>
-  </div>
-</section>
+</div>
 
+</section>
+<!-- ADD USER MODAL -->
+<div class="user-modal-overlay" id="addUserModalOverlay">
+  <div class="user-modal-card">
+    <div class="user-modal-header">
+      <div>
+        <h3>Add User</h3>
+        <p class="text-mute mb-0">Create a new dashboard user and save the Supabase bucket image URL.</p>
+      </div>
+      <button type="button" class="user-modal-close" id="closeAddUserModalBtn">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div id="addUserMessage" class="user-modal-message is-hidden"></div>
+
+    <form id="addUserForm" class="user-modal-form">
+      <div class="user-form-grid">
+        <div class="user-form-group">
+          <label for="addUserFirstName">First name</label>
+          <input type="text" id="addUserFirstName" class="form-control" required />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserLastName">Last name</label>
+          <input type="text" id="addUserLastName" class="form-control" />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserUsername">Username</label>
+          <input type="text" id="addUserUsername" class="form-control" required />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserEmail">Email</label>
+          <input type="email" id="addUserEmail" class="form-control" required />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserPhone">Phone</label>
+          <input type="text" id="addUserPhone" class="form-control" />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserRole">Role</label>
+          <select id="addUserRole" class="form-control" required>
+            <option value="admin">Admin</option>
+            <option value="donor">Donor</option>
+            <option value="volunteer">Volunteer</option>
+          </select>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserStatus">Status</label>
+          <select id="addUserStatus" class="form-control" required>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="terminated">Terminated</option>
+          </select>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserVerified">Verified</label>
+          <select id="addUserVerified" class="form-control">
+            <option value="false">Not verified</option>
+            <option value="true">Verified</option>
+          </select>
+        </div>
+
+        <div class="user-form-group full-span">
+          <label for="addUserProfilePhoto">Profile photo URL</label>
+          <input
+            type="url"
+            id="addUserProfilePhoto"
+            class="form-control"
+            placeholder="https://your-project.supabase.co/storage/v1/object/public/your-bucket/users/john.jpg"
+          />
+        </div>
+
+        <div class="user-form-group full-span">
+          <div class="user-photo-preview-wrap">
+            <img
+              id="addUserPhotoPreview"
+              class="user-photo-preview"
+              src="https://i.pravatar.cc/120?img=12"
+              alt="Preview"
+            />
+          </div>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserPassword">Password</label>
+          <input type="password" id="addUserPassword" class="form-control" required />
+          <small class="text-mute">Minimum 8 characters.</small>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserConfirmPassword">Confirm password</label>
+          <input type="password" id="addUserConfirmPassword" class="form-control" required />
+        </div>
+      </div>
+
+      <div class="user-modal-actions">
+        <button type="button" class="user-cancel-btn" id="cancelAddUserBtn">Cancel</button>
+        <button type="submit" class="btn-user-add">
+          <i class="bi bi-plus-lg"></i> Create User
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
     
   </div>
 </div>
@@ -1726,7 +2402,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
-<script src="/assets/js/dashboard.js"></script>
+<script src="assets/js/dashboard.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -150,6 +150,7 @@ const userTableBody = document.getElementById("userManagementTableBody");
 const userSearchInput = document.getElementById("userSearchInput");
 const userSortBy = document.getElementById("userSortBy");
 const userEntriesInfo = document.getElementById("userEntriesInfo");
+const userPagination = document.getElementById("userPagination");
 const selectAllUsers = document.getElementById("selectAllUsers");
 const sortButtons = document.querySelectorAll(".th-sort-btn");
 
@@ -168,6 +169,8 @@ function getRoleClass(role) {
     auditor: "role-auditor",
     communications: "role-communications",
     director: "role-director",
+    donor: "role-communications",
+    volunteer: "role-staff",
   };
   return map[(role || "").toLowerCase()] || "role-staff";
 }
@@ -190,21 +193,6 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#039;");
 }
 
-/* =========================================
-   CHANGE THIS IF YOUR DJANGO FIELD NAMES DIFFER
-   Expected backend fields:
-   id
-   full_name
-   first_name
-   username
-   email
-   reg_code
-   phone
-   role
-   status
-   profile_photo
-   last_seen_human
-========================================= */
 function renderUsers(users = []) {
   if (!userTableBody) return;
 
@@ -285,8 +273,10 @@ async function fetchUsers() {
     }
 
     const data = await response.json();
+    const totalCount = Number(data.count || 0);
     renderUsers(data.results || []);
-    updateEntriesInfo(data.count || 0);
+    updateEntriesInfo(totalCount);
+    renderUserPagination(userState.page, Math.max(1, Math.ceil(totalCount / userState.pageSize)));
   } catch (error) {
     console.error("User fetch error:", error);
     if (userTableBody) {
@@ -410,6 +400,47 @@ function updateEntriesInfo(total = 0) {
   }
 }
 
+function renderUserPagination(currentPage = 1, totalPages = 1) {
+  if (!userPagination) return;
+
+  if (totalPages <= 1) {
+    userPagination.innerHTML = `<button class="page-btn active">1</button>`;
+    return;
+  }
+
+  let html = `
+    <button class="page-btn ${currentPage === 1 ? "disabled" : ""}" data-page="${currentPage - 1}">Prev</button>
+  `;
+
+  let dotsAdded = false;
+
+  for (let page = 1; page <= totalPages; page++) {
+    const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+
+    if (shouldShow) {
+      dotsAdded = false;
+      html += `<button class="page-btn ${page === currentPage ? "active" : ""}" data-page="${page}">${page}</button>`;
+    } else if (!dotsAdded) {
+      dotsAdded = true;
+      html += `<button class="page-btn dots" disabled>...</button>`;
+    }
+  }
+
+  html += `
+    <button class="page-btn ${currentPage === totalPages ? "disabled" : ""}" data-page="${currentPage + 1}">Next</button>
+  `;
+
+  userPagination.innerHTML = html;
+
+  userPagination.querySelectorAll('[data-page]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) return;
+      userState.page = Number(btn.dataset.page);
+      fetchUsers();
+    });
+  });
+}
+
 function mapSortValueToOrdering(value) {
   const map = {
     created_desc: "-created_at",
@@ -469,19 +500,147 @@ if (selectAllUsers) {
 
 
 /* =========================================
-   ADD USER BUTTON
+   ADD USER MODAL + CREATE USER
 ========================================= */
-const openAddUserBtn = document.getElementById("openAddUserBtn");
-if (openAddUserBtn) {
-  openAddUserBtn.addEventListener("click", () => {
-    console.log("Open add user modal/form");
-    // OPEN ADD USER MODAL HERE
-    // submit to POST /api/users/
+const addUserModalOverlay = document.getElementById("addUserModalOverlay");
+const closeAddUserModalBtn = document.getElementById("closeAddUserModalBtn");
+const cancelAddUserBtn = document.getElementById("cancelAddUserBtn");
+const addUserForm = document.getElementById("addUserForm");
+const addUserMessage = document.getElementById("addUserMessage");
+const addUserPhotoInput = document.getElementById("addUserProfilePhoto");
+const addUserPhotoPreview = document.getElementById("addUserPhotoPreview");
+
+function showAddUserMessage(message, type = "success") {
+  if (!addUserMessage) return;
+  addUserMessage.textContent = message;
+  addUserMessage.className = `user-modal-message ${type}`;
+  addUserMessage.classList.remove("is-hidden");
+
+  setTimeout(() => {
+    addUserMessage.classList.add("is-hidden");
+  }, 3500);
+}
+
+function openAddUserModal() {
+  if (!addUserModalOverlay) return;
+  addUserModalOverlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeAddUserModal() {
+  if (!addUserModalOverlay) return;
+  addUserModalOverlay.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+function resetAddUserForm() {
+  if (!addUserForm) return;
+  addUserForm.reset();
+  if (addUserPhotoPreview) {
+    addUserPhotoPreview.src = "https://i.pravatar.cc/120?img=12";
+  }
+  if (addUserMessage) {
+    addUserMessage.classList.add("is-hidden");
+  }
+}
+
+if (addUserPhotoInput && addUserPhotoPreview) {
+  addUserPhotoInput.addEventListener("input", () => {
+    const value = addUserPhotoInput.value.trim();
+    addUserPhotoPreview.src = value || "https://i.pravatar.cc/120?img=12";
+  });
+
+  addUserPhotoPreview.addEventListener("error", () => {
+    addUserPhotoPreview.src = "https://i.pravatar.cc/120?img=12";
   });
 }
 
-/* Initial load */
-fetchUsers();
+if (openAddUserBtn) {
+  openAddUserBtn.addEventListener("click", () => {
+    resetAddUserForm();
+    openAddUserModal();
+  });
+}
+
+closeAddUserModalBtn?.addEventListener("click", closeAddUserModal);
+cancelAddUserBtn?.addEventListener("click", closeAddUserModal);
+
+addUserModalOverlay?.addEventListener("click", (e) => {
+  if (e.target === addUserModalOverlay) {
+    closeAddUserModal();
+  }
+});
+
+addUserForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const first_name = document.getElementById("addUserFirstName")?.value.trim() || "";
+  const last_name = document.getElementById("addUserLastName")?.value.trim() || "";
+  const username = document.getElementById("addUserUsername")?.value.trim() || "";
+  const email = document.getElementById("addUserEmail")?.value.trim() || "";
+  const phone = document.getElementById("addUserPhone")?.value.trim() || "";
+  const role = document.getElementById("addUserRole")?.value || "donor";
+  const status = document.getElementById("addUserStatus")?.value || "paused";
+  const verified = document.getElementById("addUserVerified")?.value === "true";
+  const profile_photo = document.getElementById("addUserProfilePhoto")?.value.trim() || "";
+  const password = document.getElementById("addUserPassword")?.value || "";
+  const confirm_password = document.getElementById("addUserConfirmPassword")?.value || "";
+
+  if (!first_name || !username || !email || !password) {
+    showAddUserMessage("First name, username, email, and password are required.", "error");
+    return;
+  }
+
+  if (password.length < 8) {
+    showAddUserMessage("Password must be at least 8 characters.", "error");
+    return;
+  }
+
+  if (password !== confirm_password) {
+    showAddUserMessage("Password confirmation does not match.", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch(DJANGO_USERS_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        first_name,
+        last_name,
+        username,
+        email,
+        phone,
+        role,
+        status,
+        verified,
+        profile_photo,
+        password,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message ||
+        data?.detail ||
+        JSON.stringify(data) ||
+        "Failed to create user."
+      );
+    }
+
+    showAddUserMessage("User created successfully.", "success");
+    resetAddUserForm();
+    closeAddUserModal();
+    fetchUsers();
+  } catch (error) {
+    console.error("Create user error:", error);
+    showAddUserMessage(error.message || "Failed to create user.", "error");
+  }
+});
 
 /* =========================================
    MESSAGES PAGE INTERACTION
@@ -570,20 +729,41 @@ fetchUsers();
   const DJANGO_NEEDS_API = `${API_BASE_URL}/needs/api/`;
 
   const needsTableBody = document.getElementById("needsTableBody");
+  const needsCardsGrid = document.getElementById("needsCardsGrid");
   const needForm = document.getElementById("needForm");
   const needMessageBox = document.getElementById("needMessage");
   const needSearchInput = document.getElementById("needSearchInput");
   const needStatusFilter = document.getElementById("needStatusFilter");
-  const needPriorityFilter = document.getElementById("needPriorityFilter");
+  const needTypeFilter = document.getElementById("needTypeFilter");
   const needEntriesInfo = document.getElementById("needEntriesInfo");
   const resetNeedBtn = document.getElementById("resetNeedBtn");
+  const needRefreshBtn = document.getElementById("needRefreshBtn");
+  const needsExportBtn = document.getElementById("needsExportBtn");
+  const selectAllNeeds = document.getElementById("selectAllNeeds");
 
-  if (!needsTableBody && !needForm) return;
+  const openNeedModalBtn = document.getElementById("openNeedModalBtn");
+  const closeNeedModalBtn = document.getElementById("closeNeedModalBtn");
+  const needModalOverlay = document.getElementById("needModalOverlay");
+  const needModalTitle = document.getElementById("needModalTitle");
+  const needSubmitBtn = document.getElementById("needSubmitBtn");
+
+  const needsTabs = document.querySelectorAll(".needs-tab");
+  const needsCardsView = document.getElementById("needsCardsView");
+  const needsListView = document.getElementById("needsListView");
+  const needsSortButtons = document.querySelectorAll(".needs-th-btn");
+  const needPagination = document.getElementById("needPagination");
+
+  if (!needsTableBody || !needsCardsGrid || !needForm) return;
 
   const needState = {
+    results: [],
     search: "",
     status: "",
-    priority: "",
+    needType: "",
+    view: "cards",
+    ordering: "-created_at",
+    page: 1,
+  pageSize: 6,
   };
 
   function getCookie(name) {
@@ -631,39 +811,189 @@ fetchUsers();
     }, 3000);
   }
 
-  function updateNeedEntriesInfo(total = 0) {
-    if (!needEntriesInfo) return;
-    needEntriesInfo.textContent = total
-      ? `Showing 1 to ${total} of ${total} entries`
-      : "Showing 0 to 0 of 0 entries";
+  function formatCurrency(value) {
+    const num = Number(value || 0);
+    return `KES ${num.toLocaleString()}`;
   }
 
-  function renderNeeds(needs = []) {
-    if (!needsTableBody) return;
+  function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
 
+  function getNeedPercent(need) {
+    const required = Number(need.quantity_required || 0);
+    const received = Number(need.quantity_fulfilled || 0);
+    if (required <= 0) return 0;
+    return Math.min(100, Math.max(0, (received / required) * 100));
+  }
+
+  function getNeedStatusClass(status) {
+    return String(status || "pending").toLowerCase();
+  }
+
+  function getNeedTypeClass(type) {
+    return String(type || "in_kind").toLowerCase();
+  }
+
+  function getNeedImage(need) {
+    return need.image_url || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80";
+  }
+
+  function getDonorCount(need) {
+    if (Array.isArray(need.donors)) return need.donors.length;
+    return need.donors_count || 0;
+  }
+
+  function sortNeeds(results) {
+    const ordering = needState.ordering;
+    const isDesc = ordering.startsWith("-");
+    const key = isDesc ? ordering.slice(1) : ordering;
+
+    return [...results].sort((a, b) => {
+      let aVal = a[key];
+      let bVal = b[key];
+
+      if (["quantity_required", "quantity_fulfilled"].includes(key)) {
+        aVal = Number(aVal || 0);
+        bVal = Number(bVal || 0);
+      }
+
+      if (key === "deadline" || key === "created_at") {
+        aVal = aVal ? new Date(aVal).getTime() : 0;
+        bVal = bVal ? new Date(bVal).getTime() : 0;
+      }
+
+      aVal = typeof aVal === "string" ? aVal.toLowerCase() : aVal;
+      bVal = typeof bVal === "string" ? bVal.toLowerCase() : bVal;
+
+      if (aVal < bVal) return isDesc ? 1 : -1;
+      if (aVal > bVal) return isDesc ? -1 : 1;
+      return 0;
+    });
+  }
+
+  function renderNeedCards(needs = []) {
+    if (!needs.length) {
+      needsCardsGrid.innerHTML = `<div class="text-muted">No needs found.</div>`;
+      return;
+    }
+
+    needsCardsGrid.innerHTML = needs.map((need) => {
+      const percent = getNeedPercent(need);
+      const statusClass = getNeedStatusClass(need.status);
+      const donorCount = getDonorCount(need);
+
+      return `
+        <div class="need-admin-card" data-need-id="${need.id}">
+          <div class="need-admin-image-wrap">
+            <img src="${escapeHtml(getNeedImage(need))}" alt="${escapeHtml(need.title || "Need image")}">
+            <span class="need-admin-badge">${escapeHtml((need.status || "pending").replaceAll("_", " "))}</span>
+
+            <div class="need-admin-image-actions">
+              <button class="need-image-action-btn" type="button" title="Change image" onclick="changeNeedImage('${need.id}')">
+                <i class="bi bi-image"></i>
+              </button>
+              <button class="need-image-action-btn" type="button" title="Edit details" onclick="editNeed('${need.id}')">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="need-admin-body">
+            <div class="need-admin-topline">
+              <div class="need-admin-title">${escapeHtml(need.title || "-")}</div>
+              <div class="need-admin-date">Date: ${escapeHtml(formatDate(need.created_at || need.deadline))}</div>
+            </div>
+
+            <div class="need-admin-desc">
+              ${escapeHtml(need.description || "No description provided for this need.")}
+            </div>
+
+            <div class="need-admin-metric">
+              <strong>Amount Needed:</strong>
+              <span class="need-admin-highlight">${escapeHtml(formatCurrency(need.quantity_required))}</span>
+            </div>
+
+            <div class="need-admin-metric">
+              <strong>Donors:</strong>
+              <span class="need-admin-highlight">${escapeHtml(String(donorCount))}</span>
+            </div>
+
+            <div class="need-admin-progress-text">
+              <span class="raised">${escapeHtml(formatCurrency(need.quantity_fulfilled))}</span>
+              out of ${escapeHtml(Number(need.quantity_required || 0).toLocaleString())}
+            </div>
+
+            <div class="need-admin-progress-bar">
+              <span style="width:${percent}%;"></span>
+            </div>
+
+            <div class="need-admin-actions">
+              <button class="need-admin-btn pause" type="button" onclick="setNeedStatus('${need.id}', 'active')">Pause</button>
+              <button class="need-admin-btn close" type="button" onclick="closeNeed('${need.id}')">Close</button>
+              <button class="need-admin-btn edit" type="button" onclick="editNeed('${need.id}')">Edit Details</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderNeedsTable(needs = []) {
     if (!needs.length) {
       needsTableBody.innerHTML = `
         <tr>
           <td colspan="8" class="text-center py-4 text-muted">No needs found.</td>
         </tr>
       `;
-      updateNeedEntriesInfo(0);
       return;
     }
 
     needsTableBody.innerHTML = needs.map((need) => `
       <tr data-need-id="${need.id}">
-        <td>${escapeHtml(need.title || "-")}</td>
-        <td>${escapeHtml(need.category || "-")}</td>
-        <td>${escapeHtml(need.quantity_required ?? "-")}</td>
-        <td>${escapeHtml(need.quantity_fulfilled ?? "-")}</td>
-        <td>${escapeHtml(need.priority || "-")}</td>
+        <td><input type="checkbox" class="need-row-check" data-need-id="${need.id}"></td>
+
+        <td>
+          <div class="need-table-title">
+            <img class="need-table-thumb" src="${escapeHtml(getNeedImage(need))}" alt="${escapeHtml(need.title || "Need")}">
+            <div>
+              <div class="fw-bold">${escapeHtml(need.title || "-")}</div>
+              <div class="text-mute small">${escapeHtml(need.needs_registration_code || "")}</div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <span class="need-type-pill ${getNeedTypeClass(need.need_type)}">
+            ${escapeHtml((need.need_type || "-").replaceAll("_", " "))}
+          </span>
+        </td>
+
+        <td>${escapeHtml(formatCurrency(need.quantity_required))}</td>
+        <td>${escapeHtml(formatCurrency(need.quantity_fulfilled))}</td>
+
+        <td>
+          <span class="need-status-pill ${getNeedStatusClass(need.status)}">
+            ${escapeHtml((need.status || "-").replaceAll("_", " "))}
+          </span>
+        </td>
+
         <td>${escapeHtml(need.deadline || "-")}</td>
-        <td>${escapeHtml(need.status || "-")}</td>
+
         <td>
           <div class="action-btn-group">
             <button class="table-action-btn edit-btn" title="Edit Need" onclick="editNeed('${need.id}')">
               <i class="bi bi-pencil"></i>
+            </button>
+            <button class="table-action-btn freeze-btn" title="Change Image" onclick="changeNeedImage('${need.id}')">
+              <i class="bi bi-image"></i>
             </button>
             <button class="table-action-btn freeze-btn" title="Close Need" onclick="closeNeed('${need.id}')">
               <i class="bi bi-lock"></i>
@@ -675,82 +1005,161 @@ fetchUsers();
         </td>
       </tr>
     `).join("");
-
-    updateNeedEntriesInfo(needs.length);
   }
 
-  async function fetchNeeds() {
-  try {
-    const params = new URLSearchParams();
+  function updateNeedEntriesInfo(start = 0, end = 0, total = 0) {
+  if (!needEntriesInfo) return;
+  needEntriesInfo.textContent = total
+    ? `Showing ${start} to ${end} of ${total} entries`
+    : "Showing 0 to 0 of 0 entries";
+}
 
-    if (needState.search && needState.search.trim()) {
-      params.append("search", needState.search.trim());
-    }
-    if (needState.status) {
-      params.append("status", needState.status);
-    }
-    if (needState.priority) {
-      params.append("priority", needState.priority);
-    }
+function renderNeedPagination(currentPage = 1, totalPages = 1) {
+  if (!needPagination) return;
 
-    const url = `${DJANGO_NEEDS_API}${params.toString() ? `?${params.toString()}` : ""}`;
-    console.log("Fetching needs from:", url);
+  if (totalPages <= 1) {
+    needPagination.innerHTML = `<button class="needs-page-btn active">1</button>`;
+    return;
+  }
 
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Accept": "application/json",
-      },
+  let html = `
+    <button class="needs-page-btn ${currentPage === 1 ? "disabled" : ""}" data-page="${currentPage - 1}">Prev</button>
+  `;
+
+  let dotsAdded = false;
+
+  for (let page = 1; page <= totalPages; page++) {
+    const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+
+    if (shouldShow) {
+      dotsAdded = false;
+      html += `<button class="needs-page-btn ${page === currentPage ? "active" : ""}" data-page="${page}">${page}</button>`;
+    } else if (!dotsAdded) {
+      dotsAdded = true;
+      html += `<button class="needs-page-btn dots" disabled>...</button>`;
+    }
+  }
+
+  html += `
+    <button class="needs-page-btn ${currentPage === totalPages ? "disabled" : ""}" data-page="${currentPage + 1}">Next</button>
+  `;
+
+  needPagination.innerHTML = html;
+
+  needPagination.querySelectorAll('[data-page]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) return;
+      needState.page = Number(btn.dataset.page);
+      renderNeeds();
+    });
+  });
+}
+
+function renderNeeds() {
+  const total = needState.results.length;
+  const totalPages = Math.max(1, Math.ceil(total / needState.pageSize));
+
+  if (needState.page > totalPages) needState.page = totalPages;
+
+  const startIndex = (needState.page - 1) * needState.pageSize;
+  const endIndex = startIndex + needState.pageSize;
+  const paginated = needState.results.slice(startIndex, endIndex);
+
+  renderNeedCards(paginated);
+  renderNeedsTable(paginated);
+  updateNeedEntriesInfo(total ? startIndex + 1 : 0, Math.min(endIndex, total), total);
+  renderNeedPagination(needState.page, totalPages);
+}
+
+
+  function switchNeedsView(view) {
+    needState.view = view;
+
+    needsTabs.forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.needsView === view);
     });
 
-    const rawText = await response.text();
-    console.log("Needs raw response:", rawText);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch needs (${response.status})`);
-    }
-
-    const data = rawText ? JSON.parse(rawText) : {};
-    renderNeeds(data.results || []);
-    updateNeedEntriesInfo(data.count || 0);
-
-  } catch (error) {
-    console.error("Needs fetch error:", error);
-    showNeedMessage(error.message || "Failed to load needs.", "danger");
-
-    if (needsTableBody) {
-      needsTableBody.innerHTML = `
-        <tr>
-          <td colspan="8" class="text-center py-4 text-danger">
-            Failed to load needs.
-          </td>
-        </tr>
-      `;
-    }
+    needsCardsView.classList.toggle("active", view === "cards");
+    needsListView.classList.toggle("active", view === "list");
   }
-}
+
+  function openNeedModal(editMode = false) {
+    needModalOverlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+    needModalTitle.textContent = editMode ? "Edit Need" : "Add Need";
+    needSubmitBtn.textContent = editMode ? "Update Need" : "Save Need";
+  }
+
+  function closeNeedModal() {
+    needModalOverlay.classList.remove("active");
+    document.body.style.overflow = "";
+  }
 
   function collectNeedFormData() {
     return {
       title: document.getElementById("needTitle")?.value?.trim() || "",
       description: document.getElementById("needDescription")?.value?.trim() || "",
-      category: document.getElementById("needCategory")?.value?.trim() || "",
-      quantity_required: parseInt(document.getElementById("needQuantityRequired")?.value || "0", 10),
-      quantity_fulfilled: parseInt(document.getElementById("needQuantityFulfilled")?.value || "0", 10),
-      priority: document.getElementById("needPriority")?.value || "medium",
+      quantity_required: parseFloat(document.getElementById("needQuantityRequired")?.value || "0"),
+      quantity_fulfilled: parseFloat(document.getElementById("needQuantityFulfilled")?.value || "0"),
       deadline: document.getElementById("needDeadline")?.value || null,
+      status: document.getElementById("needStatus")?.value || "pending",
+      need_type: document.getElementById("needType")?.value || "in_kind",
+      unit: document.getElementById("needUnit")?.value?.trim() || "units",
+      image_url: document.getElementById("needImageUrl")?.value?.trim() || "",
     };
   }
 
   function resetNeedForm() {
-    if (needForm) needForm.reset();
+    needForm.reset();
+    document.getElementById("needId").value = "";
+    document.getElementById("needQuantityFulfilled").value = "0";
+    document.getElementById("needType").value = "in_kind";
+    document.getElementById("needStatus").value = "pending";
+    document.getElementById("needUnit").value = "";
+    document.getElementById("needImageUrl").value = "";
+    needModalTitle.textContent = "Add Need";
+    needSubmitBtn.textContent = "Save Need";
+  }
 
-    const needIdField = document.getElementById("needId");
-    if (needIdField) needIdField.value = "";
+  async function fetchNeeds() {
+    try {
+      const params = new URLSearchParams();
 
-    const submitBtn = document.getElementById("needSubmitBtn");
-    if (submitBtn) submitBtn.textContent = "Save Need";
+      if (needState.search) params.append("search", needState.search);
+      if (needState.status) params.append("status", needState.status);
+      if (needState.needType) params.append("need_type", needState.needType);
+
+      const response = await fetch(`${DJANGO_NEEDS_API}${params.toString() ? `?${params.toString()}` : ""}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+
+      const rawText = await response.text();
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch needs (${response.status})`);
+      }
+
+      const data = rawText ? JSON.parse(rawText) : {};
+      const results = Array.isArray(data.results) ? data.results : [];
+
+      needState.results = sortNeeds(results);
+      needState.page = 1;
+      renderNeeds();
+    } catch (error) {
+      console.error("Needs fetch error:", error);
+      showNeedMessage(error.message || "Failed to load needs.", "danger");
+
+      needsCardsGrid.innerHTML = `<div class="text-danger">Failed to load needs.</div>`;
+      needsTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-4 text-danger">Failed to load needs.</td>
+        </tr>
+      `;
+    }
   }
 
   async function saveNeed(event) {
@@ -775,6 +1184,7 @@ fetchUsers();
       }
 
       resetNeedForm();
+      closeNeedModal();
       await fetchNeeds();
     } catch (error) {
       console.error("Save need error:", error);
@@ -791,16 +1201,39 @@ fetchUsers();
       document.getElementById("needId").value = need.id || "";
       document.getElementById("needTitle").value = need.title || "";
       document.getElementById("needDescription").value = need.description || "";
-      document.getElementById("needCategory").value = need.category || "";
       document.getElementById("needQuantityRequired").value = need.quantity_required ?? "";
       document.getElementById("needQuantityFulfilled").value = need.quantity_fulfilled ?? 0;
-      document.getElementById("needPriority").value = need.priority || "medium";
       document.getElementById("needDeadline").value = need.deadline || "";
+      document.getElementById("needStatus").value = need.status || "pending";
+      document.getElementById("needType").value = need.need_type || "in_kind";
+      document.getElementById("needUnit").value = need.unit || "units";
+      document.getElementById("needImageUrl").value = need.image_url || "";
 
-      const submitBtn = document.getElementById("needSubmitBtn");
-      if (submitBtn) submitBtn.textContent = "Update Need";
+      openNeedModal(true);
     } catch (error) {
       console.error("Edit need load error:", error);
+      showNeedMessage(error.message, "danger");
+    }
+  };
+
+  window.changeNeedImage = async function (needId) {
+    try {
+      const need = await needsRequest(`${DJANGO_NEEDS_API}${needId}/`, {
+        method: "GET",
+      });
+
+      const nextImageUrl = prompt("Paste the new image URL:", need.image_url || "");
+      if (nextImageUrl === null) return;
+
+      await needsRequest(`${DJANGO_NEEDS_API}${needId}/`, {
+        method: "PATCH",
+        body: JSON.stringify({ image_url: nextImageUrl.trim() }),
+      });
+
+      showNeedMessage("Need image updated successfully.");
+      await fetchNeeds();
+    } catch (error) {
+      console.error("Change need image error:", error);
       showNeedMessage(error.message, "danger");
     }
   };
@@ -835,6 +1268,63 @@ fetchUsers();
     }
   };
 
+  window.setNeedStatus = async function (needId, status) {
+    try {
+      await needsRequest(`${DJANGO_NEEDS_API}${needId}/`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+      showNeedMessage("Need status updated successfully.");
+      await fetchNeeds();
+    } catch (error) {
+      console.error("Set need status error:", error);
+      showNeedMessage(error.message, "danger");
+    }
+  };
+
+  function exportNeedsCSV() {
+    const rows = needState.results || [];
+    if (!rows.length) return;
+
+    const headers = [
+      "Registration Code",
+      "Title",
+      "Type",
+      "Amount Needed",
+      "Amount Received",
+      "Status",
+      "Deadline",
+      "Unit",
+      "Image URL",
+      "Description",
+    ];
+
+    const body = rows.map((item) => [
+      item.needs_registration_code || "",
+      item.title || "",
+      item.need_type || "",
+      item.quantity_required || 0,
+      item.quantity_fulfilled || 0,
+      item.status || "",
+      item.deadline || "",
+      item.unit || "",
+      item.image_url || "",
+      item.description || "",
+    ]);
+
+    const csv = [headers, ...body]
+      .map((line) => line.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "needs_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   if (needForm) {
     needForm.addEventListener("submit", saveNeed);
   }
@@ -846,12 +1336,24 @@ fetchUsers();
     });
   }
 
+  openNeedModalBtn?.addEventListener("click", () => {
+    resetNeedForm();
+    openNeedModal(false);
+  });
+
+  closeNeedModalBtn?.addEventListener("click", closeNeedModal);
+
+  needModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === needModalOverlay) closeNeedModal();
+  });
+
   if (needSearchInput) {
     let timer;
     needSearchInput.addEventListener("input", (e) => {
       clearTimeout(timer);
       timer = setTimeout(() => {
         needState.search = e.target.value.trim();
+        needState.page = 1;
         fetchNeeds();
       }, 300);
     });
@@ -860,17 +1362,56 @@ fetchUsers();
   if (needStatusFilter) {
     needStatusFilter.addEventListener("change", (e) => {
       needState.status = e.target.value;
+      needState.page = 1;
       fetchNeeds();
     });
   }
 
-  if (needPriorityFilter) {
-    needPriorityFilter.addEventListener("change", (e) => {
-      needState.priority = e.target.value;
+  if (needTypeFilter) {
+    needTypeFilter.addEventListener("change", (e) => {
+      needState.needType = e.target.value;
+      needState.page = 1;
       fetchNeeds();
     });
   }
 
+  needsTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const view = tab.dataset.needsView || "cards";
+      needState.page = 1;
+      switchNeedsView(view);
+    });
+  });
+
+  needsSortButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.sortKey;
+    if (!key) return;
+
+    if (needState.ordering === key) {
+      needState.ordering = `-${key}`;
+    } else if (needState.ordering === `-${key}`) {
+      needState.ordering = key;
+    } else {
+      needState.ordering = key;
+    }
+
+    needState.results = sortNeeds(needState.results);
+    needState.page = 1;
+    renderNeeds();
+  });
+});
+
+  needRefreshBtn?.addEventListener("click", fetchNeeds);
+  needsExportBtn?.addEventListener("click", exportNeedsCSV);
+
+  selectAllNeeds?.addEventListener("change", (e) => {
+    document.querySelectorAll(".need-row-check").forEach((checkbox) => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+
+  switchNeedsView("cards");
   fetchNeeds();
 })();
 
@@ -1534,6 +2075,7 @@ fetchUsers();
   const stockLevelFilter = document.getElementById("stockLevelFilter");
   const stockActiveFilter = document.getElementById("stockActiveFilter");
   const stockEntriesInfo = document.getElementById("stockEntriesInfo");
+  const stockPagination = document.getElementById("stockPagination");
   const selectAllStock = document.getElementById("selectAllStock");
   const stockSortBtn = document.getElementById("stockSortBtn");
   const stockSortHeaders = document.querySelectorAll(".stock-th-btn");
@@ -1552,6 +2094,8 @@ fetchUsers();
     active: "all",
     sortKey: "",
     sortDirection: "asc",
+    page: 1,
+  pageSize: 10,
   };
 
   function formatNumber(value) {
@@ -1658,6 +2202,76 @@ fetchUsers();
       });
     });
   }
+
+  function updateStockEntries(start = 0, end = 0, total = 0) {
+  if (stockEntriesInfo) {
+    stockEntriesInfo.textContent = total
+      ? `Showing ${start} to ${end} of ${total} entries`
+      : "Showing 0 to 0 of 0 entries";
+  }
+}
+
+function renderStockPagination(currentPage = 1, totalPages = 1) {
+  if (!stockPagination) return;
+
+  if (totalPages <= 1) {
+    stockPagination.innerHTML = `<button class="stock-page-btn active">1</button>`;
+    return;
+  }
+
+  let html = `
+    <button class="stock-page-btn ${currentPage === 1 ? "disabled" : ""}" data-page="${currentPage - 1}">Prev</button>
+  `;
+
+  let dotsAdded = false;
+
+  for (let page = 1; page <= totalPages; page++) {
+    const shouldShow = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+
+    if (shouldShow) {
+      dotsAdded = false;
+      html += `<button class="stock-page-btn ${page === currentPage ? "active" : ""}" data-page="${page}">${page}</button>`;
+    } else if (!dotsAdded) {
+      dotsAdded = true;
+      html += `<button class="stock-page-btn dots" disabled>...</button>`;
+    }
+  }
+
+  html += `
+    <button class="stock-page-btn ${currentPage === totalPages ? "disabled" : ""}" data-page="${currentPage + 1}">Next</button>
+  `;
+
+  stockPagination.innerHTML = html;
+
+  stockPagination.querySelectorAll('[data-page]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) return;
+      stockState.page = Number(btn.dataset.page);
+      applyStockFilters();
+    });
+  });
+}
+
+function paginateStockRows() {
+  const filteredRows = Array.from(stockTableBody.querySelectorAll('tr')).filter(
+    (row) => row.dataset.filterMatch !== 'false'
+  );
+
+  const total = filteredRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / stockState.pageSize));
+
+  if (stockState.page > totalPages) stockState.page = totalPages;
+
+  const startIndex = (stockState.page - 1) * stockState.pageSize;
+  const endIndex = startIndex + stockState.pageSize;
+
+  filteredRows.forEach((row, index) => {
+    row.style.display = index >= startIndex && index < endIndex ? '' : 'none';
+  });
+
+  updateStockEntries(total ? startIndex + 1 : 0, Math.min(endIndex, total), total);
+  renderStockPagination(stockState.page, totalPages);
+}
 
   function renderStockItems(items = []) {
     if (!items.length) {
@@ -1819,31 +2433,32 @@ fetchUsers();
   }
 
   function applyStockFilters() {
-    const rows = Array.from(stockTableBody.querySelectorAll("tr"));
+  const rows = Array.from(stockTableBody.querySelectorAll("tr"));
 
-    rows.forEach((row) => {
-      const category = row.dataset.category || "";
-      const active = row.dataset.active || "false";
-      const quantity = parseFloat(row.dataset.quantity || "0");
-      const reorder = parseFloat(row.dataset.reorder || "0");
-      const level = getLevelFromValues(quantity, reorder);
+  rows.forEach((row) => {
+    const category = row.dataset.category || "";
+    const active = row.dataset.active || "false";
+    const quantity = parseFloat(row.dataset.quantity || "0");
+    const reorder = parseFloat(row.dataset.reorder || "0");
+    const level = getLevelFromValues(quantity, reorder);
 
-      let visible = true;
+    let visible = true;
 
-      if (stockState.category !== "all" && category !== stockState.category) visible = false;
+    if (stockState.category !== "all" && category !== stockState.category) visible = false;
 
-      if (stockState.active !== "all") {
-        if (stockState.active === "active" && active !== "true") visible = false;
-        if (stockState.active === "inactive" && active !== "false") visible = false;
-      }
+    if (stockState.active !== "all") {
+      if (stockState.active === "active" && active !== "true") visible = false;
+      if (stockState.active === "inactive" && active !== "false") visible = false;
+    }
 
-      if (stockState.level !== "all" && level !== stockState.level) visible = false;
+    if (stockState.level !== "all" && level !== stockState.level) visible = false;
 
-      row.style.display = visible ? "" : "none";
-    });
+    row.dataset.filterMatch = visible ? "true" : "false";
+    row.style.display = visible ? "" : "none";
+  });
 
-    updateStockEntries();
-  }
+  paginateStockRows();
+}
 
   function getText(row, selector) {
     return (row.querySelector(selector)?.innerText || "").trim().toLowerCase();
@@ -1940,43 +2555,48 @@ fetchUsers();
   }
 
   stockCategoryFilter?.addEventListener("change", (e) => {
-    stockState.category = e.target.value;
+  stockState.category = e.target.value;
+  stockState.page = 1;
+  applyStockFilters();
+});
+
+stockLevelFilter?.addEventListener("change", (e) => {
+  stockState.level = e.target.value;
+  stockState.page = 1;
+  applyStockFilters();
+});
+
+stockActiveFilter?.addEventListener("change", (e) => {
+  stockState.active = e.target.value;
+  stockState.page = 1;
+  applyStockFilters();
+});
+
+stockSortHeaders.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.sortKey;
+    if (!key) return;
+
+    if (stockState.sortKey === key) {
+      stockState.sortDirection = stockState.sortDirection === "asc" ? "desc" : "asc";
+    } else {
+      stockState.sortKey = key;
+      stockState.sortDirection = "asc";
+    }
+
+    sortStockRows(key);
+    stockState.page = 1;
     applyStockFilters();
   });
+});
 
-  stockLevelFilter?.addEventListener("change", (e) => {
-    stockState.level = e.target.value;
-    applyStockFilters();
-  });
-
-  stockActiveFilter?.addEventListener("change", (e) => {
-    stockState.active = e.target.value;
-    applyStockFilters();
-  });
-
-  stockSortHeaders.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.sortKey;
-      if (!key) return;
-
-      if (stockState.sortKey === key) {
-        stockState.sortDirection = stockState.sortDirection === "asc" ? "desc" : "asc";
-      } else {
-        stockState.sortKey = key;
-        stockState.sortDirection = "asc";
-      }
-
-      sortStockRows(key);
-      applyStockFilters();
-    });
-  });
-
-  stockSortBtn?.addEventListener("click", () => {
-    stockState.sortKey = "quantity";
-    stockState.sortDirection = stockState.sortDirection === "asc" ? "desc" : "asc";
-    sortStockRows("quantity");
-    applyStockFilters();
-  });
+stockSortBtn?.addEventListener("click", () => {
+  stockState.sortKey = "quantity";
+  stockState.sortDirection = stockState.sortDirection === "asc" ? "desc" : "asc";
+  sortStockRows("quantity");
+  stockState.page = 1;
+  applyStockFilters();
+});
 
   selectAllStock?.addEventListener("change", (e) => {
     stockTableBody.querySelectorAll(".stock-row-check").forEach((checkbox) => {
@@ -1992,3 +2612,1532 @@ document.querySelectorAll(".stock-nav-link").forEach((link) => {
     localStorage.setItem("umbrellaActivePage", "stock");
   });
 });
+
+/* =========================================
+   VOLUNTEERS PAGE - DJANGO INTEGRATION
+========================================= */
+(function () {
+  const DJANGO_VOLUNTEERS_API = `${API_BASE_URL}/api/volunteers/`;
+
+  const volunteerTable = document.getElementById("volunteerTable");
+  const volunteerTableBody = document.getElementById("volunteerTableBody");
+  const volunteerSearchInput = document.getElementById("volunteerSearchInput");
+  const volunteerStatusFilter = document.getElementById("volunteerStatusFilter");
+  const volunteerSignupFilter = document.getElementById("volunteerSignupFilter");
+  const volunteerEntriesInfo = document.getElementById("volunteerEntriesInfo");
+  const volunteerPagination = document.getElementById("volunteerPagination");
+  const volunteerTabs = document.querySelectorAll(".volunteer-tab");
+  const volunteerSortButtons = document.querySelectorAll(".volunteer-th-btn");
+  const volunteerExportBtn = document.getElementById("volunteerExportBtn");
+  const selectAllVolunteers = document.getElementById("selectAllVolunteers");
+
+  if (!volunteerTable || !volunteerTableBody) return;
+
+  const volunteerState = {
+    page: 1,
+    pageSize: 10,
+    search: "",
+    tab: "all",
+    status: "all",
+    signupRange: "all",
+    ordering: "-created_at",
+    rawResults: [],
+    filteredResults: [],
+  };
+
+  function formatVolunteerDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function getVolunteerInitials(name = "") {
+    const clean = String(name).trim();
+    if (!clean) return "V";
+    const parts = clean.split(" ").filter(Boolean);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+  }
+
+  function getVolunteerStatusClass(isActive) {
+    return isActive ? "active" : "inactive";
+  }
+
+  function normalizeText(value) {
+    return String(value || "").toLowerCase().trim();
+  }
+
+  function updateVolunteerEntriesInfo(start = 0, end = 0, total = 0) {
+    if (!volunteerEntriesInfo) return;
+    volunteerEntriesInfo.textContent = total
+      ? `Showing ${start} to ${end} of ${total} entries`
+      : "Showing 0 to 0 of 0 entries";
+  }
+
+  function renderVolunteerPagination(currentPage = 1, totalPages = 1) {
+    if (!volunteerPagination) return;
+
+    if (totalPages <= 1) {
+      volunteerPagination.innerHTML = `<button class="volunteer-page-btn active">1</button>`;
+      return;
+    }
+
+    let html = `
+      <button class="volunteer-page-btn ${currentPage === 1 ? "disabled" : ""}" data-page="${currentPage - 1}">
+        Prev
+      </button>
+    `;
+
+    let dotsAdded = false;
+
+    for (let page = 1; page <= totalPages; page++) {
+      const shouldShow =
+        page === 1 ||
+        page === totalPages ||
+        Math.abs(page - currentPage) <= 1;
+
+      if (shouldShow) {
+        dotsAdded = false;
+        html += `
+          <button class="volunteer-page-btn ${page === currentPage ? "active" : ""}" data-page="${page}">
+            ${page}
+          </button>
+        `;
+      } else if (!dotsAdded) {
+        dotsAdded = true;
+        html += `<button class="volunteer-page-btn dots" disabled>...</button>`;
+      }
+    }
+
+    html += `
+      <button class="volunteer-page-btn ${currentPage === totalPages ? "disabled" : ""}" data-page="${currentPage + 1}">
+        Next
+      </button>
+    `;
+
+    volunteerPagination.innerHTML = html;
+
+    volunteerPagination.querySelectorAll("[data-page]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.classList.contains("disabled")) return;
+        volunteerState.page = Number(btn.dataset.page);
+        renderVolunteerTable();
+      });
+    });
+  }
+
+  function applyVolunteerFilters(results = []) {
+    let filtered = [...results];
+
+    if (volunteerState.tab === "active") {
+      filtered = filtered.filter((item) => !!item.is_active);
+    } else if (volunteerState.tab === "inactive") {
+      filtered = filtered.filter((item) => !item.is_active);
+    }
+
+    if (volunteerState.status === "active") {
+      filtered = filtered.filter((item) => !!item.is_active);
+    } else if (volunteerState.status === "inactive") {
+      filtered = filtered.filter((item) => !item.is_active);
+    }
+
+    if (volunteerState.signupRange !== "all") {
+      filtered = filtered.filter((item) => {
+        const count = Number(item.signups_count || 0);
+        if (volunteerState.signupRange === "0") return count === 0;
+        if (volunteerState.signupRange === "1-5") return count >= 1 && count <= 5;
+        if (volunteerState.signupRange === "6-10") return count >= 6 && count <= 10;
+        if (volunteerState.signupRange === "10+") return count > 10;
+        return true;
+      });
+    }
+
+    return filtered;
+  }
+
+  function sortVolunteerResults(results = []) {
+    const ordering = volunteerState.ordering;
+    const isDesc = ordering.startsWith("-");
+    const key = isDesc ? ordering.slice(1) : ordering;
+
+    return [...results].sort((a, b) => {
+      let aVal = a[key];
+      let bVal = b[key];
+
+      if (key === "is_active") {
+        aVal = a.is_active ? 1 : 0;
+        bVal = b.is_active ? 1 : 0;
+      }
+
+      if (key === "signups_count") {
+        aVal = Number(a.signups_count || 0);
+        bVal = Number(b.signups_count || 0);
+      }
+
+      if (key === "created_at") {
+        aVal = new Date(a.created_at || 0).getTime();
+        bVal = new Date(b.created_at || 0).getTime();
+      }
+
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return isDesc ? 1 : -1;
+      if (aVal > bVal) return isDesc ? -1 : 1;
+      return 0;
+    });
+  }
+
+  function renderVolunteerTable() {
+    const filtered = sortVolunteerResults(
+      applyVolunteerFilters(volunteerState.rawResults)
+    );
+
+    volunteerState.filteredResults = filtered;
+
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / volunteerState.pageSize));
+
+    if (volunteerState.page > totalPages) volunteerState.page = totalPages;
+
+    const startIndex = (volunteerState.page - 1) * volunteerState.pageSize;
+    const endIndex = startIndex + volunteerState.pageSize;
+    const paginated = filtered.slice(startIndex, endIndex);
+
+    if (!paginated.length) {
+      volunteerTableBody.innerHTML = `
+        <tr>
+          <td colspan="10" class="text-center py-4 text-muted">
+            No volunteers found.
+          </td>
+        </tr>
+      `;
+      updateVolunteerEntriesInfo(0, 0, total);
+      renderVolunteerPagination(1, 1);
+      return;
+    }
+
+    volunteerTableBody.innerHTML = paginated.map((volunteer) => {
+      const statusText = volunteer.is_active ? "Active" : "Inactive";
+      const safeName = escapeHtml(volunteer.name || "Volunteer");
+      const safeEmail = escapeHtml(volunteer.email || "-");
+      const safePhone = escapeHtml(volunteer.phone || "-");
+      const safeSkills = escapeHtml(volunteer.skills || "-");
+      const safeAvailability = escapeHtml(volunteer.availability || "-");
+      const safeSignups = escapeHtml(volunteer.signups_count ?? 0);
+      const safeCreated = escapeHtml(formatVolunteerDate(volunteer.created_at));
+
+      return `
+        <tr data-volunteer-id="${volunteer.id}">
+          <td class="sticky-base sticky-order-col">
+            <input type="checkbox" class="volunteer-row-check" data-volunteer-id="${volunteer.id}">
+          </td>
+
+          <td class="sticky-base sticky-volunteer-col" data-col-key="volunteer">
+            <div class="volunteer-cell-wrap">
+              <span class="volunteer-avatar">${escapeHtml(getVolunteerInitials(volunteer.name || "Volunteer"))}</span>
+              <div>
+                <div class="volunteer-name-line">${safeName}</div>
+                <div class="volunteer-meta-line">ID: ${escapeHtml(volunteer.id)}</div>
+              </div>
+            </div>
+          </td>
+
+          <td data-col-key="email">${safeEmail}</td>
+          <td data-col-key="phone">${safePhone}</td>
+          <td data-col-key="skills">
+            <span class="volunteer-skill-badge">${safeSkills}</span>
+          </td>
+          <td data-col-key="availability">${safeAvailability}</td>
+          <td data-col-key="signups_count">
+            <span class="volunteer-signup-pill">${safeSignups}</span>
+          </td>
+          <td data-col-key="status">
+            <span class="volunteer-status ${getVolunteerStatusClass(volunteer.is_active)}">${statusText}</span>
+          </td>
+          <td data-col-key="created_at">${safeCreated}</td>
+          <td data-col-key="actions">
+            <div class="d-flex align-items-center gap-2">
+              <button class="volunteer-action-btn" title="View Volunteer" onclick="viewVolunteer('${volunteer.id}')">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    updateVolunteerEntriesInfo(
+      total === 0 ? 0 : startIndex + 1,
+      Math.min(endIndex, total),
+      total
+    );
+
+    renderVolunteerPagination(volunteerState.page, totalPages);
+  }
+
+  async function fetchVolunteers() {
+    try {
+      const params = new URLSearchParams();
+
+      if (volunteerState.search) {
+        params.set("search", volunteerState.search);
+      }
+
+      const response = await fetch(`${DJANGO_VOLUNTEERS_API}?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch volunteers");
+      }
+
+      const data = await response.json();
+      volunteerState.rawResults = Array.isArray(data.results) ? data.results : [];
+      volunteerState.page = 1;
+      renderVolunteerTable();
+    } catch (error) {
+      console.error("Volunteer fetch error:", error);
+      volunteerTableBody.innerHTML = `
+        <tr>
+          <td colspan="10" class="text-center py-4 text-danger">
+            Failed to load volunteers.
+          </td>
+        </tr>
+      `;
+      updateVolunteerEntriesInfo(0, 0, 0);
+    }
+  }
+
+  function exportVolunteersCSV() {
+    const rows = volunteerState.filteredResults || [];
+    if (!rows.length) return;
+
+    const headers = [
+      "ID",
+      "Name",
+      "Email",
+      "Phone",
+      "Skills",
+      "Availability",
+      "Signups Count",
+      "Status",
+      "Created At"
+    ];
+
+    const body = rows.map((item) => [
+      item.id ?? "",
+      item.name ?? "",
+      item.email ?? "",
+      item.phone ?? "",
+      item.skills ?? "",
+      item.availability ?? "",
+      item.signups_count ?? 0,
+      item.is_active ? "Active" : "Inactive",
+      formatVolunteerDate(item.created_at),
+    ]);
+
+    const csv = [headers, ...body]
+      .map((line) => line.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "volunteers_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  window.viewVolunteer = function (volunteerId) {
+    const volunteer = volunteerState.rawResults.find((item) => String(item.id) === String(volunteerId));
+    if (!volunteer) return;
+
+    alert([
+      `Name: ${volunteer.name || "-"}`,
+      `Email: ${volunteer.email || "-"}`,
+      `Phone: ${volunteer.phone || "-"}`,
+      `Skills: ${volunteer.skills || "-"}`,
+      `Availability: ${volunteer.availability || "-"}`,
+      `Signups: ${volunteer.signups_count ?? 0}`,
+      `Status: ${volunteer.is_active ? "Active" : "Inactive"}`,
+      `Joined: ${formatVolunteerDate(volunteer.created_at)}`
+    ].join("\n"));
+  };
+
+  volunteerSearchInput?.addEventListener("input", (() => {
+    let timer;
+    return (e) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        volunteerState.search = e.target.value.trim();
+        fetchVolunteers();
+      }, 350);
+    };
+  })());
+
+  volunteerStatusFilter?.addEventListener("change", (e) => {
+    volunteerState.status = e.target.value;
+    volunteerState.page = 1;
+    renderVolunteerTable();
+  });
+
+  volunteerSignupFilter?.addEventListener("change", (e) => {
+    volunteerState.signupRange = e.target.value;
+    volunteerState.page = 1;
+    renderVolunteerTable();
+  });
+
+  volunteerTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      volunteerTabs.forEach((item) => item.classList.remove("active"));
+      tab.classList.add("active");
+      volunteerState.tab = tab.dataset.volunteerTab || "all";
+      volunteerState.page = 1;
+      renderVolunteerTable();
+    });
+  });
+
+  volunteerSortButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.sortKey;
+      if (!key) return;
+
+      if (volunteerState.ordering === key) {
+        volunteerState.ordering = `-${key}`;
+      } else if (volunteerState.ordering === `-${key}`) {
+        volunteerState.ordering = key;
+      } else {
+        volunteerState.ordering = key;
+      }
+
+      volunteerState.page = 1;
+      renderVolunteerTable();
+    });
+  });
+
+  volunteerExportBtn?.addEventListener("click", exportVolunteersCSV);
+
+  selectAllVolunteers?.addEventListener("change", (e) => {
+    volunteerTableBody.querySelectorAll(".volunteer-row-check").forEach((checkbox) => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+
+  fetchVolunteers();
+})();
+
+/* =========================================
+   CALENDAR PAGE - DJANGO CONNECTED VERSION
+   Endpoints expected:
+   GET    /api/calendar/events/
+   POST   /api/calendar/events/
+   GET    /api/calendar/events/:id/
+   PATCH  /api/calendar/events/:id/
+   DELETE /api/calendar/events/:id/
+========================================= */
+(function () {
+  const CALENDAR_API = `${API_BASE_URL}/api/calendar/events/`;
+
+  const board = document.getElementById("calendarBoard");
+  const currentLabel = document.getElementById("calendarCurrentLabel");
+  const currentSummary = document.getElementById("calendarSelectionSummary");
+  const searchInput = document.getElementById("calendarSearchInput");
+  const todayBtn = document.getElementById("calendarTodayBtn");
+  const prevBtn = document.getElementById("calendarPrevBtn");
+  const nextBtn = document.getElementById("calendarNextBtn");
+  const viewSwitchButtons = document.querySelectorAll(".calendar-view-btn");
+  const miniTitle = document.getElementById("calendarMiniTitle");
+  const miniGrid = document.getElementById("calendarMiniGrid");
+  const miniPrevBtn = document.getElementById("calendarMiniPrev");
+  const miniNextBtn = document.getElementById("calendarMiniNext");
+  const legendList = document.getElementById("calendarLegendList");
+
+  const modalBackdrop = document.getElementById("calendarEventModalBackdrop");
+  const openModalBtn = document.getElementById("openCalendarEventModal");
+  const closeModalBtn = document.getElementById("closeCalendarEventModal");
+  const cancelModalBtn = document.getElementById("cancelCalendarEventBtn");
+  const deleteEventBtn = document.getElementById("deleteCalendarEventBtn");
+  const eventForm = document.getElementById("calendarEventForm");
+  const modalTitle = document.getElementById("calendarModalTitle");
+
+  const eventIdField = document.getElementById("calendarEventId");
+  const titleField = document.getElementById("calendarEventTitle");
+  const startDateField = document.getElementById("calendarStartDate");
+  const endDateField = document.getElementById("calendarEndDate");
+  const startTimeField = document.getElementById("calendarStartTime");
+  const endTimeField = document.getElementById("calendarEndTime");
+  const allDayField = document.getElementById("calendarAllDay");
+  const colorField = document.getElementById("calendarColor");
+  const statusField = document.getElementById("calendarStatus");
+  const descriptionField = document.getElementById("calendarDescription");
+  const timeFields = document.getElementById("calendarTimeFields");
+
+  if (!board) return;
+
+  const calendarState = {
+    view: "month",
+    anchorDate: startOfDay(new Date()),
+    selectedDate: startOfDay(new Date()),
+    miniDate: startOfMonth(new Date()),
+    events: [],
+    filteredEvents: [],
+    search: "",
+    draggingEventId: null,
+  };
+
+  function startOfDay(date) {
+    const copy = new Date(date);
+    copy.setHours(0, 0, 0, 0);
+    return copy;
+  }
+
+  function startOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  }
+
+  function endOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  }
+
+  function addDays(date, days) {
+    const copy = new Date(date);
+    copy.setDate(copy.getDate() + days);
+    return copy;
+  }
+
+  function addMonths(date, months) {
+    const copy = new Date(date);
+    copy.setMonth(copy.getMonth() + months);
+    return copy;
+  }
+
+  function addYears(date, years) {
+    const copy = new Date(date);
+    copy.setFullYear(copy.getFullYear() + years);
+    return copy;
+  }
+
+  function pad(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function toISODate(date) {
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  function formatLongMonth(date) {
+    return date.toLocaleDateString("en-GB", {
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  function formatWeekdayShort(date) {
+    return date.toLocaleDateString("en-GB", { weekday: "short" });
+  }
+
+  function formatDateLabel(date) {
+    return date.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  function formatTimeLabel(time24) {
+    if (!time24) return "";
+    const [h, m] = String(time24).split(":");
+    const d = new Date();
+    d.setHours(Number(h || 0), Number(m || 0), 0, 0);
+    return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function hexToRgba(hex, alpha) {
+    const clean = String(hex || "#2563eb").replace("#", "");
+    const normalized = clean.length === 3
+      ? clean.split("").map((c) => c + c).join("")
+      : clean;
+    const value = parseInt(normalized, 16);
+    const r = (value >> 16) & 255;
+    const g = (value >> 8) & 255;
+    const b = value & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function escapeHtml(value = "") {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(name + "="));
+    return cookieValue ? decodeURIComponent(cookieValue.split("=")[1]) : null;
+  }
+
+  async function apiRequest(url, options = {}) {
+    const response = await fetch(url, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+
+    let data = {};
+    const text = await response.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (_) {
+      data = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.error || `Request failed with status ${response.status}`);
+    }
+
+    return data;
+  }
+
+  function normalizeEvent(raw = {}) {
+    return {
+      id: raw.id,
+      title: raw.title || "Untitled event",
+      description: raw.description || "",
+      start_date: raw.start_date,
+      end_date: raw.end_date || raw.start_date,
+      start_time: raw.start_time || "",
+      end_time: raw.end_time || "",
+      all_day: !!raw.all_day,
+      color: raw.color || "#2563eb",
+      status: raw.status || "scheduled",
+      starts_at: raw.starts_at || null,
+      ends_at: raw.ends_at || null,
+    };
+  }
+
+  function applySearchFilter() {
+    const query = calendarState.search.toLowerCase().trim();
+    calendarState.filteredEvents = calendarState.events.filter((event) => {
+      if (!query) return true;
+      return [event.title, event.description, event.start_date, event.end_date]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+  }
+
+  async function fetchEvents() {
+    try {
+      const data = await apiRequest(CALENDAR_API, { method: "GET" });
+      const results = Array.isArray(data) ? data : (data.results || []);
+      calendarState.events = results.map(normalizeEvent);
+      applySearchFilter();
+      renderCalendar();
+    } catch (error) {
+      console.error("Calendar fetch error:", error);
+      board.innerHTML = `<div style="padding:2rem; color:#dc2626; font-weight:700;">Failed to load calendar events.</div>`;
+    }
+  }
+
+  function getEventsForDate(date) {
+    const iso = toISODate(date);
+    return calendarState.filteredEvents.filter((event) => iso >= event.start_date && iso <= event.end_date);
+  }
+
+  function getEventById(eventId) {
+    return calendarState.events.find((event) => String(event.id) === String(eventId));
+  }
+
+  function setSelectedDate(date) {
+    calendarState.selectedDate = startOfDay(date);
+    if (calendarState.view === "day") {
+      calendarState.anchorDate = startOfDay(date);
+    }
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    applySearchFilter();
+    renderHeaderLabels();
+    renderMiniCalendar();
+    renderLegend();
+
+    if (calendarState.view === "month") {
+      renderMonthView();
+    } else if (calendarState.view === "day") {
+      renderDayView();
+    } else {
+      renderYearView();
+    }
+  }
+
+  function renderHeaderLabels() {
+    if (calendarState.view === "month") {
+      currentLabel.textContent = formatLongMonth(calendarState.anchorDate);
+      currentSummary.textContent = `Month schedule overview · ${calendarState.filteredEvents.length} event(s)`;
+    } else if (calendarState.view === "day") {
+      currentLabel.textContent = formatDateLabel(calendarState.anchorDate);
+      currentSummary.textContent = `${getEventsForDate(calendarState.anchorDate).length} event(s) on this day`;
+    } else {
+      currentLabel.textContent = String(calendarState.anchorDate.getFullYear());
+      currentSummary.textContent = `${calendarState.filteredEvents.length} event(s) this year`;
+    }
+  }
+
+  function renderMiniCalendar() {
+    const first = startOfMonth(calendarState.miniDate);
+    const startWeekDay = first.getDay();
+    const gridStart = addDays(first, -startWeekDay);
+
+    miniTitle.textContent = formatLongMonth(calendarState.miniDate);
+
+    const cells = [];
+    for (let i = 0; i < 42; i += 1) {
+      const date = addDays(gridStart, i);
+      const iso = toISODate(date);
+      const isCurrentMonth = date.getMonth() === calendarState.miniDate.getMonth();
+      const isToday = iso === toISODate(new Date());
+      const isSelected = iso === toISODate(calendarState.selectedDate);
+      const classes = ["calendar-mini-day"];
+      if (!isCurrentMonth) classes.push("is-muted");
+      if (isToday) classes.push("is-today");
+      if (isSelected) classes.push("is-selected");
+
+      cells.push(`
+        <button class="${classes.join(" ")}" data-mini-date="${iso}" type="button">
+          ${date.getDate()}
+        </button>
+      `);
+    }
+
+    miniGrid.innerHTML = cells.join("");
+
+    miniGrid.querySelectorAll("[data-mini-date]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const date = new Date(`${btn.dataset.miniDate}T00:00:00`);
+        calendarState.anchorDate = startOfDay(date);
+        setSelectedDate(date);
+      });
+    });
+  }
+
+  function renderLegend() {
+    const grouped = new Map();
+
+    calendarState.filteredEvents.forEach((event) => {
+      const key = `${event.color}|${event.status}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          color: event.color,
+          status: event.status,
+          count: 0,
+          latestTitle: event.title,
+        });
+      }
+      grouped.get(key).count += 1;
+    });
+
+    if (!grouped.size) {
+      legendList.innerHTML = `
+        <div class="calendar-legend-item">
+          <div class="calendar-legend-swatch" style="background:#94a3b8"></div>
+          <div class="calendar-legend-text">
+            <div class="calendar-legend-name">No events yet</div>
+            <div class="calendar-legend-meta">Add a schedule item to start.</div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    legendList.innerHTML = Array.from(grouped.values())
+      .slice(0, 8)
+      .map((item) => `
+        <div class="calendar-legend-item">
+          <div class="calendar-legend-swatch" style="background:${item.color}"></div>
+          <div class="calendar-legend-text">
+            <div class="calendar-legend-name">${escapeHtml(item.latestTitle)}</div>
+            <div class="calendar-legend-meta">${escapeHtml(item.status)} · ${item.count} item(s)</div>
+          </div>
+        </div>
+      `)
+      .join("");
+  }
+
+  function renderMonthView() {
+    const first = startOfMonth(calendarState.anchorDate);
+    const monthStartWeekDay = first.getDay();
+    const gridStart = addDays(first, -monthStartWeekDay);
+
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const weekdayHtml = weekdays
+      .map((day) => `<div class="calendar-weekday-cell">${day}</div>`)
+      .join("");
+
+    const dayCells = [];
+
+    for (let i = 0; i < 42; i += 1) {
+      const date = addDays(gridStart, i);
+      const iso = toISODate(date);
+      const isToday = iso === toISODate(new Date());
+      const isSelected = iso === toISODate(calendarState.selectedDate);
+      const isMuted = date.getMonth() !== calendarState.anchorDate.getMonth();
+
+      const classes = ["calendar-day-cell"];
+      if (isToday) classes.push("is-today");
+      if (isSelected) classes.push("is-selected");
+      if (isMuted) classes.push("is-muted");
+
+      const dayEvents = getEventsForDate(date);
+      const visibleEvents = dayEvents.slice(0, 3);
+      const moreCount = Math.max(dayEvents.length - visibleEvents.length, 0);
+
+      dayCells.push(`
+        <div class="${classes.join(" ")}" data-calendar-date="${iso}">
+          <div class="calendar-day-head">
+            <button class="calendar-day-number" type="button" data-select-date="${iso}">${date.getDate()}</button>
+          </div>
+          <div class="calendar-day-events">
+            ${visibleEvents.map((event) => renderEventChip(event)).join("")}
+            ${moreCount ? `<button class="calendar-more-events" type="button" data-select-date="${iso}">+${moreCount} more</button>` : ""}
+          </div>
+        </div>
+      `);
+    }
+
+    board.innerHTML = `
+      <div class="calendar-month-view">
+        <div class="calendar-month-weekdays">${weekdayHtml}</div>
+        <div class="calendar-month-grid">${dayCells.join("")}</div>
+      </div>
+    `;
+
+    wireMonthInteractions();
+  }
+
+  function renderEventChip(event) {
+    return `
+      <div
+        class="calendar-event-chip status-${escapeHtml(event.status)}"
+        data-event-id="${event.id}"
+        draggable="true"
+        style="background:${event.color}; ${event.all_day ? "" : `border-left:3px solid ${hexToRgba(event.color, 0.75)}`};"
+        title="${escapeHtml(event.title)}"
+      >
+        ${escapeHtml(event.title)}
+      </div>
+    `;
+  }
+
+  function wireMonthInteractions() {
+    board.querySelectorAll("[data-select-date]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const date = new Date(`${btn.dataset.selectDate}T00:00:00`);
+        setSelectedDate(date);
+      });
+    });
+
+    board.querySelectorAll(".calendar-event-chip").forEach((chip) => {
+      chip.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openEditModal(chip.dataset.eventId);
+      });
+
+      chip.addEventListener("dragstart", () => {
+        calendarState.draggingEventId = chip.dataset.eventId;
+      });
+
+      chip.addEventListener("dragend", () => {
+        calendarState.draggingEventId = null;
+      });
+    });
+
+    board.querySelectorAll("[data-calendar-date]").forEach((cell) => {
+      cell.addEventListener("click", () => {
+        const date = new Date(`${cell.dataset.calendarDate}T00:00:00`);
+        setSelectedDate(date);
+      });
+
+      cell.addEventListener("dblclick", () => {
+        const date = new Date(`${cell.dataset.calendarDate}T00:00:00`);
+        openCreateModal(date);
+      });
+
+      cell.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        cell.classList.add("calendar-drop-target");
+      });
+
+      cell.addEventListener("dragleave", () => {
+        cell.classList.remove("calendar-drop-target");
+      });
+
+      cell.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        cell.classList.remove("calendar-drop-target");
+        if (!calendarState.draggingEventId) return;
+
+        const newDate = cell.dataset.calendarDate;
+        const currentEvent = getEventById(calendarState.draggingEventId);
+        if (!currentEvent) return;
+
+        const originalStart = new Date(`${currentEvent.start_date}T00:00:00`);
+        const originalEnd = new Date(`${currentEvent.end_date}T00:00:00`);
+        const targetDate = new Date(`${newDate}T00:00:00`);
+        const durationDays = Math.max(0, Math.round((originalEnd - originalStart) / 86400000));
+        const newEnd = addDays(targetDate, durationDays);
+
+        try {
+          await updateEvent(currentEvent.id, {
+            start_date: toISODate(targetDate),
+            end_date: toISODate(newEnd),
+          }, false);
+          await fetchEvents();
+        } catch (error) {
+          console.error("Drag update error:", error);
+          alert(error.message || "Failed to move event.");
+        }
+      });
+    });
+  }
+
+  function renderDayView() {
+    const selectedEvents = getEventsForDate(calendarState.anchorDate);
+    const timeSlots = [];
+    for (let hour = 0; hour < 24; hour += 1) {
+      timeSlots.push(`<div class="calendar-time-slot">${pad(hour)}:00</div>`);
+    }
+
+    board.innerHTML = `
+      <div class="calendar-day-view">
+        <div class="calendar-time-rail">${timeSlots.join("")}</div>
+        <div class="calendar-day-columns" id="calendarDayColumns">
+          ${new Array(24).fill(0).map(() => '<div class="calendar-day-slot"></div>').join("")}
+          <div class="calendar-day-event-layer" id="calendarDayEventLayer"></div>
+        </div>
+      </div>
+    `;
+
+    const eventLayer = document.getElementById("calendarDayEventLayer");
+    const slotHeight = 52;
+
+    eventLayer.innerHTML = selectedEvents.map((event) => {
+      const startHour = event.all_day ? 0 : Number(String(event.start_time || "00:00").split(":")[0]);
+      const startMinute = event.all_day ? 0 : Number(String(event.start_time || "00:00").split(":")[1]);
+      const endHour = event.all_day ? 23 : Number(String(event.end_time || event.start_time || "23:59").split(":")[0]);
+      const endMinute = event.all_day ? 59 : Number(String(event.end_time || event.start_time || "23:59").split(":")[1]);
+
+      const startPosition = ((startHour * 60) + startMinute) / 60 * slotHeight;
+      const endPosition = ((endHour * 60) + endMinute) / 60 * slotHeight;
+      const height = Math.max(slotHeight * 0.9, endPosition - startPosition);
+
+      return `
+        <div
+          class="calendar-day-event-block"
+          data-event-id="${event.id}"
+          style="top:${startPosition}px; height:${height}px; background:${event.color};"
+        >
+          ${escapeHtml(event.title)}
+          <span class="calendar-day-event-time">${event.all_day ? 'All day' : `${formatTimeLabel(event.start_time)} - ${formatTimeLabel(event.end_time)}`}</span>
+        </div>
+      `;
+    }).join("");
+
+    eventLayer.querySelectorAll("[data-event-id]").forEach((block) => {
+      block.addEventListener("click", () => openEditModal(block.dataset.eventId));
+    });
+
+    currentSummary.textContent = selectedEvents.length
+      ? `${selectedEvents.length} scheduled block(s)`
+      : "No event on this day";
+  }
+
+  function renderYearView() {
+    const year = calendarState.anchorDate.getFullYear();
+    const monthsHtml = [];
+
+    for (let month = 0; month < 12; month += 1) {
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = endOfMonth(monthStart);
+      const startWeekDay = monthStart.getDay();
+      const daysInMonth = monthEnd.getDate();
+      const cells = [];
+
+      for (let i = 0; i < startWeekDay; i += 1) {
+        cells.push('<div class="calendar-year-day"></div>');
+      }
+
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const date = new Date(year, month, day);
+        const iso = toISODate(date);
+        const hasEvents = getEventsForDate(date).length > 0;
+        const isCurrent = iso === toISODate(new Date());
+        const classes = ["calendar-year-day"];
+        if (hasEvents) classes.push("has-events");
+        if (isCurrent) classes.push("is-current");
+
+        cells.push(`<button class="${classes.join(" ")}" data-year-date="${iso}" type="button">${day}</button>`);
+      }
+
+      monthsHtml.push(`
+        <div class="calendar-year-month">
+          <h4>${monthStart.toLocaleDateString("en-GB", { month: "long" })}</h4>
+          <div class="calendar-year-grid">${cells.join("")}</div>
+        </div>
+      `);
+    }
+
+    board.innerHTML = `<div class="calendar-year-view">${monthsHtml.join("")}</div>`;
+
+    board.querySelectorAll("[data-year-date]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const date = new Date(`${btn.dataset.yearDate}T00:00:00`);
+        calendarState.view = "day";
+        calendarState.anchorDate = date;
+        calendarState.selectedDate = date;
+        syncViewButtons();
+        renderCalendar();
+      });
+    });
+  }
+
+  function syncViewButtons() {
+    viewSwitchButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.view === calendarState.view);
+    });
+  }
+
+  function resetForm() {
+    eventForm.reset();
+    eventIdField.value = "";
+    deleteEventBtn.style.display = "none";
+    modalTitle.textContent = "New event";
+    const todayIso = toISODate(calendarState.selectedDate || new Date());
+    startDateField.value = todayIso;
+    endDateField.value = todayIso;
+    startTimeField.value = "09:00";
+    endTimeField.value = "10:00";
+    colorField.value = "#2563eb";
+    statusField.value = "scheduled";
+    descriptionField.value = "";
+    allDayField.checked = false;
+    toggleTimeFields();
+  }
+
+  function openModal() {
+    modalBackdrop.classList.remove("is-hidden");
+  }
+
+  function closeModal() {
+    modalBackdrop.classList.add("is-hidden");
+  }
+
+  function toggleTimeFields() {
+    timeFields.style.display = allDayField.checked ? "none" : "grid";
+  }
+
+  function fillFormFromEvent(event) {
+    eventIdField.value = event.id;
+    titleField.value = event.title || "";
+    startDateField.value = event.start_date;
+    endDateField.value = event.end_date;
+    startTimeField.value = event.start_time || "";
+    endTimeField.value = event.end_time || "";
+    allDayField.checked = !!event.all_day;
+    colorField.value = event.color || "#2563eb";
+    statusField.value = event.status || "scheduled";
+    descriptionField.value = event.description || "";
+    deleteEventBtn.style.display = "inline-flex";
+    modalTitle.textContent = "Edit event";
+    toggleTimeFields();
+  }
+
+  function collectFormPayload() {
+    const payload = {
+      title: titleField.value.trim(),
+      start_date: startDateField.value,
+      end_date: endDateField.value,
+      all_day: allDayField.checked,
+      color: colorField.value,
+      status: statusField.value,
+      description: descriptionField.value.trim(),
+    };
+
+    if (!payload.all_day) {
+      payload.start_time = startTimeField.value || "09:00";
+      payload.end_time = endTimeField.value || payload.start_time;
+    } else {
+      payload.start_time = null;
+      payload.end_time = null;
+    }
+
+    return payload;
+  }
+
+  function validatePayload(payload) {
+    if (!payload.title) throw new Error("Event title is required.");
+    if (!payload.start_date || !payload.end_date) throw new Error("Start and end dates are required.");
+    if (payload.end_date < payload.start_date) throw new Error("End date cannot be before start date.");
+    if (!payload.all_day && payload.end_time < payload.start_time) {
+      throw new Error("End time cannot be before start time on the same day.");
+    }
+  }
+
+  function openCreateModal(date = new Date()) {
+    resetForm();
+    const iso = toISODate(date);
+    startDateField.value = iso;
+    endDateField.value = iso;
+    openModal();
+  }
+
+  function openEditModal(eventId) {
+    const event = getEventById(eventId);
+    if (!event) return;
+    resetForm();
+    fillFormFromEvent(event);
+    openModal();
+  }
+
+  async function createEvent(payload) {
+    return apiRequest(CALENDAR_API, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function updateEvent(eventId, payload, reload = true) {
+    const response = await apiRequest(`${CALENDAR_API}${eventId}/`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+
+    if (reload) await fetchEvents();
+    return response;
+  }
+
+  async function deleteEvent(eventId) {
+    return apiRequest(`${CALENDAR_API}${eventId}/`, {
+      method: "DELETE",
+    });
+  }
+
+  eventForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    try {
+      const payload = collectFormPayload();
+      validatePayload(payload);
+
+      if (eventIdField.value) {
+        await updateEvent(eventIdField.value, payload, false);
+      } else {
+        await createEvent(payload);
+      }
+
+      closeModal();
+      await fetchEvents();
+    } catch (error) {
+      console.error("Save calendar event error:", error);
+      alert(error.message || "Failed to save event.");
+    }
+  });
+
+  deleteEventBtn?.addEventListener("click", async () => {
+    if (!eventIdField.value) return;
+    if (!confirm("Delete this event?")) return;
+
+    try {
+      await deleteEvent(eventIdField.value);
+      closeModal();
+      await fetchEvents();
+    } catch (error) {
+      console.error("Delete event error:", error);
+      alert(error.message || "Failed to delete event.");
+    }
+  });
+
+  allDayField?.addEventListener("change", toggleTimeFields);
+  openModalBtn?.addEventListener("click", () => openCreateModal(calendarState.selectedDate));
+  closeModalBtn?.addEventListener("click", closeModal);
+  cancelModalBtn?.addEventListener("click", closeModal);
+  modalBackdrop?.addEventListener("click", (event) => {
+    if (event.target === modalBackdrop) closeModal();
+  });
+
+  todayBtn?.addEventListener("click", () => {
+    const today = startOfDay(new Date());
+    calendarState.anchorDate = today;
+    calendarState.selectedDate = today;
+    calendarState.miniDate = startOfMonth(today);
+    renderCalendar();
+  });
+
+  prevBtn?.addEventListener("click", () => {
+    if (calendarState.view === "month") {
+      calendarState.anchorDate = addMonths(calendarState.anchorDate, -1);
+      calendarState.miniDate = startOfMonth(calendarState.anchorDate);
+    } else if (calendarState.view === "day") {
+      calendarState.anchorDate = addDays(calendarState.anchorDate, -1);
+      calendarState.selectedDate = calendarState.anchorDate;
+      calendarState.miniDate = startOfMonth(calendarState.anchorDate);
+    } else {
+      calendarState.anchorDate = addYears(calendarState.anchorDate, -1);
+      calendarState.miniDate = startOfMonth(calendarState.anchorDate);
+    }
+    renderCalendar();
+  });
+
+  nextBtn?.addEventListener("click", () => {
+    if (calendarState.view === "month") {
+      calendarState.anchorDate = addMonths(calendarState.anchorDate, 1);
+      calendarState.miniDate = startOfMonth(calendarState.anchorDate);
+    } else if (calendarState.view === "day") {
+      calendarState.anchorDate = addDays(calendarState.anchorDate, 1);
+      calendarState.selectedDate = calendarState.anchorDate;
+      calendarState.miniDate = startOfMonth(calendarState.anchorDate);
+    } else {
+      calendarState.anchorDate = addYears(calendarState.anchorDate, 1);
+      calendarState.miniDate = startOfMonth(calendarState.anchorDate);
+    }
+    renderCalendar();
+  });
+
+  viewSwitchButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      calendarState.view = button.dataset.view;
+      syncViewButtons();
+      renderCalendar();
+    });
+  });
+
+  miniPrevBtn?.addEventListener("click", () => {
+    calendarState.miniDate = addMonths(calendarState.miniDate, -1);
+    renderMiniCalendar();
+  });
+
+  miniNextBtn?.addEventListener("click", () => {
+    calendarState.miniDate = addMonths(calendarState.miniDate, 1);
+    renderMiniCalendar();
+  });
+
+  searchInput?.addEventListener("input", (() => {
+    let timer;
+    return (event) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        calendarState.search = event.target.value || "";
+        renderCalendar();
+      }, 250);
+    };
+  })());
+
+  syncViewButtons();
+  resetForm();
+  fetchEvents();
+})();
+
+
+/* =========================================
+   SETTINGS PAGE - DJANGO INTEGRATION
+========================================= */
+(function () {
+  const settingsTabButtons = document.querySelectorAll(".settings-tab-btn");
+  const settingsTabPanels = document.querySelectorAll(".settings-tab-panel");
+  const settingsMessage = document.getElementById("settingsMessage");
+
+  const refreshSettingsBtn = document.getElementById("refreshSettingsBtn");
+
+  const settingsProfileForm = document.getElementById("settingsProfileForm");
+  const settingsDetailsForm = document.getElementById("settingsDetailsForm");
+  const settingsPasswordForm = document.getElementById("settingsPasswordForm");
+
+  const resetProfileSettingsBtn = document.getElementById("resetProfileSettingsBtn");
+  const resetDetailsSettingsBtn = document.getElementById("resetDetailsSettingsBtn");
+  const resetPasswordSettingsBtn = document.getElementById("resetPasswordSettingsBtn");
+
+  if (!settingsProfileForm || !settingsDetailsForm || !settingsPasswordForm) return;
+
+  const SETTINGS_USERS_API = `${API_BASE_URL}/api/users/`;
+
+  let settingsState = {
+    user: null,
+  };
+
+  function showSettingsMessage(message, type = "success") {
+    if (!settingsMessage) return;
+    settingsMessage.textContent = message;
+    settingsMessage.className = `settings-message ${type}`;
+    settingsMessage.classList.remove("is-hidden");
+
+    setTimeout(() => {
+      settingsMessage.classList.add("is-hidden");
+    }, 3200);
+  }
+
+  function setActiveSettingsTab(tabName) {
+    settingsTabButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.settingsTab === tabName);
+    });
+
+    settingsTabPanels.forEach((panel) => {
+      panel.classList.toggle("active", panel.dataset.settingsPanel === tabName);
+    });
+  }
+
+  settingsTabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setActiveSettingsTab(btn.dataset.settingsTab);
+    });
+  });
+
+  function formatDateTime(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function roleLabel(role) {
+    const map = {
+      admin: "Admin",
+      donor: "Donor",
+      volunteer: "Volunteer",
+    };
+    return map[(role || "").toLowerCase()] || (role || "Unknown");
+  }
+
+  function statusLabel(status) {
+    const map = {
+      active: "Active",
+      paused: "Paused",
+      terminated: "Terminated",
+    };
+    return map[(status || "").toLowerCase()] || (status || "Unknown");
+  }
+
+  function getFullName(user = {}) {
+    if (user.full_name) return user.full_name;
+    return `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown User";
+  }
+
+  function fillSettingsUI(user) {
+    settingsState.user = user;
+
+    const fullName = getFullName(user);
+    const photo = user.profile_photo || "https://i.pravatar.cc/140?img=12";
+
+    document.getElementById("settingsUserId").value = user.id || "";
+
+    document.getElementById("settingsProfilePhoto").src = photo;
+    document.getElementById("settingsProfilePhoto").alt = fullName;
+    document.getElementById("settingsProfilePhotoInput").value = user.profile_photo || "";
+
+    document.getElementById("settingsFullName").textContent = fullName;
+    document.getElementById("settingsEmailHero").textContent = user.email || "-";
+    document.getElementById("settingsRoleHero").textContent = roleLabel(user.role);
+    document.getElementById("settingsStatusHero").textContent = statusLabel(user.status);
+    document.getElementById("settingsVerifiedHero").textContent = user.verified ? "Verified" : "Not verified";
+
+    document.getElementById("settingsFirstName").value = user.first_name || "";
+    document.getElementById("settingsLastName").value = user.last_name || "";
+    document.getElementById("settingsUsername").value = user.username || "";
+    document.getElementById("settingsRole").value = user.role || "donor";
+    document.getElementById("settingsStatus").value = user.status || "paused";
+    document.getElementById("settingsVerified").checked = !!user.verified;
+
+    document.getElementById("settingsEmail").value = user.email || "";
+    document.getElementById("settingsPhone").value = user.phone || "";
+    document.getElementById("settingsRegCode").value = user.reg_code || "";
+    document.getElementById("settingsFullNameReadOnly").value = fullName;
+    document.getElementById("settingsCreatedAt").value = formatDateTime(user.created_at);
+    document.getElementById("settingsLastSeen").value = user.last_seen_human || "-";
+    document.getElementById("settingsUpdatedAt").value = formatDateTime(user.updated_at);
+  }
+
+  async function fetchSettingsUser() {
+    try {
+      const response = await fetch(`${SETTINGS_USERS_API}?page=1&page_size=1`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error("Failed to load settings user.");
+
+      const data = await response.json();
+      const user = data?.results?.[0];
+
+      if (!user) {
+        throw new Error("No active user record found.");
+      }
+
+      fillSettingsUI(user);
+    } catch (error) {
+      console.error("Settings load error:", error);
+      showSettingsMessage(error.message || "Failed to load settings.", "error");
+    }
+  }
+
+  async function patchSettingsUser(payload) {
+    const userId = document.getElementById("settingsUserId").value;
+
+    if (!userId) {
+      throw new Error("User ID missing.");
+    }
+
+    const response = await fetch(`${SETTINGS_USERS_API}${userId}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Failed to update settings.";
+      try {
+        const err = await response.json();
+        errorMessage = typeof err === "object" ? JSON.stringify(err) : errorMessage;
+      } catch (_) {}
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
+
+  settingsProfileForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    try {
+      const payload = {
+        first_name: document.getElementById("settingsFirstName").value.trim(),
+        last_name: document.getElementById("settingsLastName").value.trim(),
+        username: document.getElementById("settingsUsername").value.trim(),
+        profile_photo: document.getElementById("settingsProfilePhotoInput").value.trim(),
+        role: document.getElementById("settingsRole").value,
+        status: document.getElementById("settingsStatus").value,
+        verified: document.getElementById("settingsVerified").checked,
+      };
+
+      const updatedUser = await patchSettingsUser(payload);
+      fillSettingsUI(updatedUser);
+      showSettingsMessage("Profile updated successfully.", "success");
+    } catch (error) {
+      console.error("Profile settings update error:", error);
+      showSettingsMessage(error.message || "Failed to update profile.", "error");
+    }
+  });
+
+  settingsDetailsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    try {
+      const payload = {
+        email: document.getElementById("settingsEmail").value.trim(),
+        phone: document.getElementById("settingsPhone").value.trim(),
+      };
+
+      const updatedUser = await patchSettingsUser(payload);
+      fillSettingsUI(updatedUser);
+      showSettingsMessage("Details updated successfully.", "success");
+    } catch (error) {
+      console.error("Details settings update error:", error);
+      showSettingsMessage(error.message || "Failed to update details.", "error");
+    }
+  });
+
+  settingsPasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById("settingsCurrentPassword").value;
+    const newPassword = document.getElementById("settingsNewPassword").value;
+    const confirmPassword = document.getElementById("settingsConfirmPassword").value;
+
+    if (newPassword.length < 8) {
+      showSettingsMessage("New password must be at least 8 characters.", "error");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showSettingsMessage("New password and confirmation do not match.", "error");
+      return;
+    }
+
+    try {
+      const userId = document.getElementById("settingsUserId").value;
+
+      const response = await fetch(`${SETTINGS_USERS_API}${userId}/change-password/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Password update failed.";
+        try {
+          const err = await response.json();
+          errorMessage = err.message || err.error || JSON.stringify(err);
+        } catch (_) {}
+        throw new Error(errorMessage);
+      }
+
+      settingsPasswordForm.reset();
+      showSettingsMessage("Password updated successfully.", "success");
+    } catch (error) {
+      console.error("Password update error:", error);
+      showSettingsMessage(
+        error.message || "Password update needs a backend endpoint.",
+        "error"
+      );
+    }
+  });
+
+  resetProfileSettingsBtn?.addEventListener("click", () => {
+    if (settingsState.user) fillSettingsUI(settingsState.user);
+  });
+
+  resetDetailsSettingsBtn?.addEventListener("click", () => {
+    if (settingsState.user) fillSettingsUI(settingsState.user);
+  });
+
+  resetPasswordSettingsBtn?.addEventListener("click", () => {
+    settingsPasswordForm.reset();
+  });
+
+  refreshSettingsBtn?.addEventListener("click", fetchSettingsUser);
+
+  fetchSettingsUser();
+})();
