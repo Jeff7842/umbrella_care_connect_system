@@ -18,10 +18,12 @@
     <p>Out of Stock Items: {{ out_of_stock_count }}</p>
 
     <h2>Stock Items</h2>
-    <p>
+
+    <div style="margin-bottom: 15px;">
+        <a href="{% url 'stock_add' %}">Add Stock</a> |
         <a href="{% url 'stock_issue' %}">Issue Stock</a> |
         <a href="{% url 'stock_adjust' %}">Adjust Stock</a>
-    </p>
+    </div>
 
     <table border="1" cellpadding="8">
         <thead>

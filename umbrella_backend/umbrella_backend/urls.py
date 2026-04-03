@@ -23,4 +23,6 @@ urlpatterns = [
     path("needs/", include("needs.urls")),
     path("donations/", include("donations.urls")),
     path("stock/", include("stock.urls")),
+    path("api/stock/", include("stock.api_urls")),
+    path("", include("volunteers.urls")),
 ]

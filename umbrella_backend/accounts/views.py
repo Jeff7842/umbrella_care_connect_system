@@ -28,7 +28,10 @@ def signup_page(request):
 
 
 
-def dashboard_page(request):
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+@ensure_csrf_cookie
+def dashboard_view(request):
     return render(request, "dashboard.html")
 
 

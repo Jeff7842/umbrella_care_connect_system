@@ -3,7 +3,7 @@ from .views import (
     index_page,
     signin_page,
     signup_page,
-    dashboard_page,
+    dashboard_view,
     #LoginAPIView,
     #LogoutAPIView,
     #MeAPIView,
@@ -16,7 +16,7 @@ urlpatterns = [
     path("", index_page, name="index"),
     path("signin/", signin_page, name="signin"),
     path("signup/", signup_page, name="signup"),
-    path("dashboard/", dashboard_page, name="dashboard"),
+    path("dashboard/", dashboard_view, name="dashboard"),
 
     #//*path("api/auth/login/", LoginAPIView.as_view(), name="api-login"),
     #//path("api/auth/logout/", LogoutAPIView.as_view(), name="api-logout"),

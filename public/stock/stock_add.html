@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Stock</title>
+</head>
+<body>
+    <h1>Add Stock</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>
+            {{ form.name.label_tag }}<br>
+            {{ form.name }}
+            {% for error in form.name.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.description.label_tag }}<br>
+            {{ form.description }}
+            {% for error in form.description.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.category.label_tag }}<br>
+            {{ form.category }}
+            {% for error in form.category.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.unit.label_tag }}<br>
+            {{ form.unit }}
+            {% for error in form.unit.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.current_quantity.label_tag }}<br>
+            {{ form.current_quantity }}
+            {% for error in form.current_quantity.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.reorder_level.label_tag }}<br>
+            {{ form.reorder_level }}
+            {% for error in form.reorder_level.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.is_active.label_tag }}
+            {{ form.is_active }}
+            {% for error in form.is_active.errors %}
+                <br><span>{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <button type="submit">Save Stock Item</button>
+    </form>
+
+    <p><a href="/dashboard/">Back to Dashboard</a></p>
+</body>
+</html>

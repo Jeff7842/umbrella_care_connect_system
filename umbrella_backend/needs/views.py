@@ -1,37 +1,63 @@
 import json
-from datetime import date
+from datetime import date, datetime
+from functools import wraps
+from uuid import UUID
 
-from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
-from .models import Need
+from accounts.models import UserManagement
+from .models import NeedRecord
 
 
+def get_current_user(request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return None
+    return UserManagement.objects.filter(id=user_id, is_active=True).first()
+
+
+def admin_required_api(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        user = get_current_user(request)
+        if not user:
+            return JsonResponse({"error": "Authentication required."}, status=401)
+        if user.role != "admin":
+            return JsonResponse({"error": "Admin access required."}, status=403)
+        request.current_user = user
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@ensure_csrf_cookie
 def needs_page(request):
     return render(request, "needs.html")
 
 
 def serialize_need(need):
     return {
-        "id": need.id,
+        "id": str(need.id),
         "title": need.title,
         "description": need.description,
-        "category": need.category,
-        "quantity_required": need.quantity_required,
-        "quantity_fulfilled": need.quantity_fulfilled,
-        "quantity_remaining": need.quantity_remaining,
-        "priority": need.priority,
-        "deadline": need.deadline.isoformat() if need.deadline else None,
+        "category": need.need_type or "-",
+        "quantity_required": float(need.amount_needed),
+        "quantity_fulfilled": float(need.amount_received),
+        "quantity_remaining": float(need.amount_needed - need.amount_received),
+        "priority": "-",  # your Supabase table currently has no priority column
+        "deadline": need.expiring_at.date().isoformat() if need.expiring_at else None,
         "status": need.status,
-        "posted_by_name": need.posted_by_name,
-        "is_closed": need.is_closed,
-        "closed_at": need.closed_at.isoformat() if need.closed_at else None,
-        "created_at": need.created_at.isoformat(),
-        "updated_at": need.updated_at.isoformat(),
+        "posted_by_name": None,
+        "is_closed": need.status == "closed",
+        "closed_at": need.updated_at.isoformat() if need.status == "closed" else None,
+        "created_at": need.created_at.isoformat() if need.created_at else None,
+        "updated_at": need.updated_at.isoformat() if need.updated_at else None,
+        "unit": need.unit,
+        "need_type": need.need_type,
+        "needs_registration_code": need.needs_registration_code,
     }
 
 
@@ -42,23 +68,16 @@ def parse_body(request):
         return None
 
 
-@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def needs_api(request):
     if request.method == "GET":
-        needs = Need.objects.all()
+        needs = NeedRecord.objects.all().order_by("-created_at")
 
         status_value = request.GET.get("status")
-        category_value = request.GET.get("category")
-        priority_value = request.GET.get("priority")
         search_value = request.GET.get("search")
 
         if status_value:
             needs = needs.filter(status=status_value)
-        if category_value:
-            needs = needs.filter(category__iexact=category_value)
-        if priority_value:
-            needs = needs.filter(priority=priority_value)
         if search_value:
             needs = needs.filter(title__icontains=search_value)
 
@@ -67,38 +86,54 @@ def needs_api(request):
             "results": [serialize_need(n) for n in needs]
         })
 
+    user = get_current_user(request)
+    if not user:
+        return JsonResponse({"error": "Authentication required."}, status=401)
+    if user.role != "admin":
+        return JsonResponse({"error": "Admin access required."}, status=403)
+
     data = parse_body(request)
     if data is None:
         return JsonResponse({"error": "Invalid JSON body."}, status=400)
 
     try:
-        deadline = None
+        expiring_at = None
         if data.get("deadline"):
-            deadline = date.fromisoformat(data["deadline"])
+            expiring_at = datetime.fromisoformat(f"{data['deadline']}T00:00:00")
 
-        need = Need.objects.create(
-            title=data.get("title", "").strip(),
+        need = NeedRecord.objects.create(
+            title=(data.get("title") or "").strip(),
             description=data.get("description", ""),
-            category=data.get("category"),
-            quantity_required=int(data.get("quantity_required", 0)),
-            quantity_fulfilled=int(data.get("quantity_fulfilled", 0)),
-            priority=data.get("priority", "medium"),
-            deadline=deadline,
-            posted_by_name=data.get("posted_by_name"),
+            amount_needed=data.get("quantity_required", 0),
+            amount_received=data.get("quantity_fulfilled", 0),
+            status=data.get("status", "pending"),
+            expiring_at=expiring_at,
+            need_type="in_kind",
+            unit="units",
+            donors=[],
         )
-        return JsonResponse({"message": "Need created successfully.", "need": serialize_need(need)}, status=201)
 
-    except (ValueError, ValidationError) as e:
+        return JsonResponse(
+            {"message": "Need created successfully.", "need": serialize_need(need)},
+            status=201
+        )
+
+    except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
 
-@csrf_exempt
 @require_http_methods(["GET", "PATCH", "DELETE"])
 def need_detail_api(request, need_id):
-    need = get_object_or_404(Need, pk=need_id)
+    need = get_object_or_404(NeedRecord, pk=need_id)
 
     if request.method == "GET":
         return JsonResponse(serialize_need(need))
+
+    user = get_current_user(request)
+    if not user:
+        return JsonResponse({"error": "Authentication required."}, status=401)
+    if user.role != "admin":
+        return JsonResponse({"error": "Admin access required."}, status=403)
 
     if request.method == "PATCH":
         data = parse_body(request)
@@ -107,38 +142,45 @@ def need_detail_api(request, need_id):
 
         try:
             if "title" in data:
-                need.title = data["title"].strip()
+                need.title = (data["title"] or "").strip()
             if "description" in data:
                 need.description = data["description"]
-            if "category" in data:
-                need.category = data["category"]
             if "quantity_required" in data:
-                need.quantity_required = int(data["quantity_required"])
+                need.amount_needed = data["quantity_required"]
             if "quantity_fulfilled" in data:
-                need.quantity_fulfilled = int(data["quantity_fulfilled"])
-            if "priority" in data:
-                need.priority = data["priority"]
+                need.amount_received = data["quantity_fulfilled"]
             if "deadline" in data:
-                need.deadline = date.fromisoformat(data["deadline"]) if data["deadline"] else None
-            if "posted_by_name" in data:
-                need.posted_by_name = data["posted_by_name"]
+                need.expiring_at = (
+                    datetime.fromisoformat(f"{data['deadline']}T00:00:00")
+                    if data["deadline"] else None
+                )
+            if "status" in data:
+                need.status = data["status"]
 
+            need.updated_at = timezone.now()
             need.save()
-            return JsonResponse({"message": "Need updated successfully.", "need": serialize_need(need)})
 
-        except (ValueError, ValidationError) as e:
+            return JsonResponse({
+                "message": "Need updated successfully.",
+                "need": serialize_need(need)
+            })
+
+        except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
     need.delete()
     return JsonResponse({"message": "Need deleted successfully."})
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
+@admin_required_api
 def close_need_api(request, need_id):
-    need = get_object_or_404(Need, pk=need_id)
-    need.is_closed = True
-    need.closed_at = timezone.now()
+    need = get_object_or_404(NeedRecord, pk=need_id)
+    need.status = "closed"
+    need.updated_at = timezone.now()
     need.save()
 
-    return JsonResponse({"message": "Need closed successfully.", "need": serialize_need(need)})
+    return JsonResponse({
+        "message": "Need closed successfully.",
+        "need": serialize_need(need)
+    })

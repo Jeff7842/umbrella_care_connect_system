@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 
-from .forms import StockIssueForm, StockAdjustmentForm
+from .forms import StockIssueForm, StockAdjustmentForm, StockItemForm
 from .models import StockItem, StockTransaction
 from .services import issue_stock, adjust_stock
 
@@ -28,6 +28,20 @@ def stock_list_view(request):
     }
 
     return render(request, "stock/stock_list.html", context)
+
+
+@login_required
+def stock_add_view(request):
+    if request.method == "POST":
+        form = StockItemForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Stock item added successfully.")
+            return redirect("stock_list")
+    else:
+        form = StockItemForm()
+
+    return render(request, "stock/stock_add.html", {"form": form})
 
 
 @login_required

@@ -16,6 +16,7 @@
   <sidebar-component></sidebar-component>
 
   <div class="admin-main">
+
     <navbar-component></navbar-component>
 
     <section class="app-page active" data-page="analytics">
@@ -740,11 +741,114 @@
     </section>
 
     <section class="app-page" data-page="needs">
-      <div class="page-header-card">
-        <div class="panel-title"><i class="bi bi-basket2"></i> Needs</div>
-        <p class="text-mute mb-0">Volunteer management page.</p>
+  <div class="page-header-card">
+    <div class="panel-title"><i class="bi bi-basket2"></i> Needs</div>
+    <p class="text-mute mb-0">Manage posted needs, update quantities, and close fulfilled requests.</p>
+  </div>
+
+  <div id="needMessage" style="display:none; margin: 12px 0; padding: 10px; border-radius: 8px;"></div>
+
+  <div class="page-header-card" style="margin-top: 16px;">
+    <form id="needForm">
+      <input type="hidden" id="needId">
+
+      <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+        <div>
+          <label for="needTitle">Need Title</label>
+          <input type="text" id="needTitle" class="form-control" required>
+        </div>
+
+        <div>
+          <label for="needCategory">Category</label>
+          <input type="text" id="needCategory" class="form-control" placeholder="e.g. Food, Education, Medical">
+        </div>
+
+        <div>
+          <label for="needQuantityRequired">Quantity Required</label>
+          <input type="number" id="needQuantityRequired" class="form-control" required min="1">
+        </div>
+
+        <div>
+          <label for="needQuantityFulfilled">Quantity Fulfilled</label>
+          <input type="number" id="needQuantityFulfilled" class="form-control" value="0" min="0">
+        </div>
+
+        <div>
+          <label for="needPriority">Priority</label>
+          <select id="needPriority" class="form-control">
+  <option value="low">Low</option>
+  <option value="medium" selected>Medium</option>
+  <option value="high">High</option>
+  <option value="urgent">Urgent</option>
+</select>
+        </div>
+
+        <div>
+          <label for="needDeadline">Deadline</label>
+          <input type="date" id="needDeadline" class="form-control">
+        </div>
       </div>
-    </section>
+
+      <div style="margin-top: 12px;">
+        <label for="needDescription">Description</label>
+        <textarea id="needDescription" class="form-control" rows="4"></textarea>
+      </div>
+
+      <div style="margin-top: 14px; display:flex; gap:10px;">
+        <button type="submit" id="needSubmitBtn" class="btn btn-primary">Save Need</button>
+        <button type="button" id="resetNeedBtn" class="btn btn-outline-secondary">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="page-header-card" style="margin-top: 16px;">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <input type="text" id="needSearchInput" class="form-control" placeholder="Search needs..." style="max-width: 260px;">
+
+      <select id="needStatusFilter" class="form-control" style="max-width: 220px;">
+  <option value="">All Statuses</option>
+  <option value="active">Active</option>
+  <option value="pending">Pending</option>
+  <option value="partially_funded">Partially Funded</option>
+  <option value="fulfilled">Fulfilled</option>
+  <option value="expired">Expired</option>
+  <option value="closed">Closed</option>
+</select>
+
+      <select id="needPriorityFilter" class="form-control" style="max-width: 220px;">
+  <option value="">All Priorities</option>
+  <option value="low">Low</option>
+  <option value="medium">Medium</option>
+  <option value="high">High</option>
+  <option value="urgent">Urgent</option>
+</select>
+    </div>
+
+    <div id="needEntriesInfo" style="margin-top: 14px;">Showing 0 to 0 of 0 entries</div>
+
+    <div style="margin-top: 16px; overflow-x:auto;">
+      <table class="table" style="width:100%;">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Required</th>
+            <th>Fulfilled</th>
+            <th>Priority</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="needsTableBody">
+          <tr>
+            <td colspan="8">Loading needs...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
     <section class="app-page" data-page="donations">
       <div class="page-header-card donation-header-card">
@@ -1115,16 +1219,463 @@
     </section>
 
     <section class="app-page" data-page="stock">
-      <div class="page-header-card">
-        <div class="panel-title"><i class="bi bi-boxes"></i> Stock</div>
-        <p class="text-mute mb-0">Inventory and stock page.</p>
+  <div class="page-header-card stock-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-box-seam"></i> Stock
+        </div>
+        <p class="text-mute mb-0">
+          Monitor received inventory, stock levels, activity state and recent stock movement.
+        </p>
       </div>
-    </section>
+    </div>
+  </div>
+
+  <div class="stock-dashboard">
+    <div class="stock-stat-grid">
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon amber"><i class="bi bi-box-seam"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockTotalItems">0</div>
+        <div class="stock-stat-label">Total stock items</div>
+      </div>
+
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon blue"><i class="bi bi-arrow-down-circle"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockRecentlyReceived">0</div>
+        <div class="stock-stat-label">Recently received</div>
+      </div>
+
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon green"><i class="bi bi-check2-circle"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockActiveItems">0</div>
+        <div class="stock-stat-label">Active stock items</div>
+      </div>
+
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon red"><i class="bi bi-exclamation-circle"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockLowAlerts">0</div>
+        <div class="stock-stat-label">Low stock alerts</div>
+      </div>
+    </div>
+
+    <div class="stock-table-shell">
+      <div class="stock-toolbar-top">
+        <div class="stock-left-tools">
+          <select id="stockCategoryFilter" class="stock-tool-select">
+            <option value="all">Show : All Stock</option>
+            <option value="food">Food</option>
+            <option value="clothing">Clothing</option>
+            <option value="education">Education</option>
+            <option value="medical">Medical</option>
+            <option value="construction">Construction</option>
+            <option value="general">General</option>
+          </select>
+
+          <select id="stockLevelFilter" class="stock-tool-select">
+            <option value="all">Show Level : All Levels</option>
+            <option value="healthy">Healthy Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="critical">Critical Stock</option>
+          </select>
+
+          <select id="stockActiveFilter" class="stock-tool-select">
+            <option value="all">Show : All Active</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+
+        <div class="stock-right-tools">
+  <a href="/stock/add/" class="stock-tool-btn stock-link-btn stock-nav-link" data-return-page="stock">
+    <i class="bi bi-plus-lg"></i> Add Stock
+  </a>
+
+  <a href="/stock/issue/" class="stock-tool-btn stock-link-btn stock-nav-link" data-return-page="stock">
+    <i class="bi bi-box-arrow-up-right"></i> Issue Stock
+  </a>
+
+  <a href="/stock/adjust/" class="stock-tool-btn stock-link-btn stock-nav-link" data-return-page="stock">
+    <i class="bi bi-sliders"></i> Adjust Stock
+  </a>
+
+  <button class="stock-tool-btn" id="stockSortBtn" type="button">
+    <i class="bi bi-arrow-down-up"></i> Short by
+  </button>
+
+  <button class="stock-tool-btn" id="stockFilterBtn" type="button">
+    <i class="bi bi-funnel"></i> Filters
+  </button>
+</div>
+      </div>
+
+      <div class="stock-table-scroll">
+        <table class="table stock-table align-middle mb-0" id="stockTable">
+          <thead>
+            <tr>
+              <th style="width: 52px;">
+                <input type="checkbox" id="selectAllStock" />
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="name">
+                  Stock List <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="reg">
+                  Reg Code <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="updated">
+                  Last Updated <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="quantity">
+                  In Stocks <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>Unit</th>
+              <th>Active</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="stockTableBody">
+            <!--
+              DATABASE NOTE:
+              Add these columns to stock_items:
+              1. stock_no INTEGER UNIQUE
+              2. reg_code VARCHAR(10) UNIQUE
+
+              Required reg_code format:
+              C + 2-digit sequential stock number + U + 4 random digits + lowercase c + 1 random uppercase letter
+
+              Example:
+              C01U4821cQ
+              C12U1054cM
+
+              This should be generated in the database, not the frontend in production.
+            
+
+            <tr
+              data-category="food"
+              data-active="true"
+              data-quantity="86"
+              data-reorder="30"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-rice">R</div>
+                  <div>
+                    <div class="stock-item-name">Rice Bags</div>
+                    <div class="stock-item-category">Food</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C01U4821cQ</span></td>
+              <td>03 Apr 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="86">
+                  <div class="stock-level-bar">
+                    <span style="width: 86%;"></span>
+                  </div>
+                  <div class="stock-level-text">86 / Reorder 30</div>
+                </div>
+              </td>
+              <td>Bags</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="education"
+              data-active="true"
+              data-quantity="42"
+              data-reorder="20"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-books">B</div>
+                  <div>
+                    <div class="stock-item-name">Exercise Books</div>
+                    <div class="stock-item-category">Education</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C02U1945cL</span></td>
+              <td>02 Apr 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="70">
+                  <div class="stock-level-bar">
+                    <span style="width: 70%;"></span>
+                  </div>
+                  <div class="stock-level-text">42 / Reorder 20</div>
+                </div>
+              </td>
+              <td>Books</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="medical"
+              data-active="true"
+              data-quantity="14"
+              data-reorder="18"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-medical">M</div>
+                  <div>
+                    <div class="stock-item-name">First Aid Kits</div>
+                    <div class="stock-item-category">Medical</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C03U6280cS</span></td>
+              <td>01 Apr 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="38">
+                  <div class="stock-level-bar">
+                    <span style="width: 38%;"></span>
+                  </div>
+                  <div class="stock-level-text">14 / Reorder 18</div>
+                </div>
+              </td>
+              <td>Kits</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="construction"
+              data-active="false"
+              data-quantity="8"
+              data-reorder="15"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-cement">C</div>
+                  <div>
+                    <div class="stock-item-name">Cement Bags</div>
+                    <div class="stock-item-category">Construction</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C04U3378cT</span></td>
+              <td>30 Mar 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="22">
+                  <div class="stock-level-bar">
+                    <span style="width: 22%;"></span>
+                  </div>
+                  <div class="stock-level-text">8 / Reorder 15</div>
+                </div>
+              </td>
+              <td>Bags</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="clothing"
+              data-active="true"
+              data-quantity="25"
+              data-reorder="10"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-clothes">U</div>
+                  <div>
+                    <div class="stock-item-name">School Uniforms</div>
+                    <div class="stock-item-category">Clothing</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C05U9217cP</span></td>
+              <td>29 Mar 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="64">
+                  <div class="stock-level-bar">
+                    <span style="width: 64%;"></span>
+                  </div>
+                  <div class="stock-level-text">25 / Reorder 10</div>
+                </div>
+              </td>
+              <td>Pieces</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="general"
+              data-active="true"
+              data-quantity="11"
+              data-reorder="12"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-general">T</div>
+                  <div>
+                    <div class="stock-item-name">Toiletries Pack</div>
+                    <div class="stock-item-category">General</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C06U5406cN</span></td>
+              <td>28 Mar 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="30">
+                  <div class="stock-level-bar">
+                    <span style="width: 30%;"></span>
+                  </div>
+                  <div class="stock-level-text">11 / Reorder 12</div>
+                </div>
+              </td>
+              <td>Packs</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          -->
+          </tbody>
+
+        </table>
+      </div>
+
+      <div class="stock-table-footer">
+        <div class="stock-entries-count" id="stockEntriesInfo">Showing 1 to 6 of 6 entries</div>
+
+        <div class="stock-pagination">
+          <button class="stock-page-btn">Prev</button>
+          <button class="stock-page-btn active">1</button>
+          <button class="stock-page-btn">2</button>
+          <button class="stock-page-btn">3</button>
+          <button class="stock-page-btn">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-transactions-shell">
+  <div class="stock-transactions-header">
+    <h3><i class="bi bi-clock-history"></i> Recent stock transactions</h3>
+  </div>
+
+  <div class="stock-transactions-list" id="stockTransactionsList"></div>
+</div>
+    </div>
 
     <footer class="d-flex justify-content-between  align-items-center text-center px-4 py-3 border-top">
       <span>© 2026 Umbrella Connect - Admin panel</span>
       <span><i class="bi bi-arrow-repeat me-1"></i> last sync 10:32 AM</span>
     </footer>
+  </div>
+</section>
+
+    
   </div>
 </div>
 

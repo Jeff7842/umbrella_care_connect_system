@@ -1833,3 +1833,433 @@ body.dark-mode .donation-table thead .sticky-base {
     padding: 1rem;
   }
 }
+
+/* ================================
+   STOCK PAGE
+================================ */
+.stock-header-card {
+  padding-bottom: 0.9rem;
+}
+
+.stock-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.stock-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stock-stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 1.2rem;
+}
+
+.stock-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.stock-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.stock-stat-icon.amber { background: linear-gradient(135deg, #f4a623, #ffbf47); }
+.stock-stat-icon.blue { background: linear-gradient(135deg, #3f93d9, #70baf5); }
+.stock-stat-icon.green { background: linear-gradient(135deg, #22b573, #4ddf97); }
+.stock-stat-icon.red { background: linear-gradient(135deg, #d9534f, #ff7d79); }
+
+.stock-card-menu {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.stock-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.stock-stat-label {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.stock-table-shell,
+.stock-transactions-shell {
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 28px;
+  padding: 1.25rem;
+}
+
+.stock-toolbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.stock-left-tools,
+.stock-right-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stock-tool-btn,
+.stock-tool-select {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--sidebar-bg);
+  color: var(--text-primary);
+  padding: 0 0.95rem;
+  font-weight: 500;
+}
+
+.stock-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid var(--border-light);
+}
+
+.stock-table {
+  min-width: 1120px;
+  margin-bottom: 0;
+}
+
+.stock-table thead th {
+  background: color-mix(in srgb, var(--brand-soft) 28%, white 72%);
+  padding: 0.95rem 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+body.dark-mode .stock-table thead th {
+  background: #2d3a4b;
+}
+
+.stock-table tbody td {
+  padding: 1rem 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+  white-space: nowrap;
+  color: var(--text-primary);
+  background: var(--card-bg);
+}
+
+.stock-table tbody tr:hover td {
+  background: rgba(74, 114, 255, 0.03);
+}
+
+.stock-th-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.stock-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.stock-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.stock-thumb-rice { background: linear-gradient(135deg, #a47c48, #d4a96c); }
+.stock-thumb-books { background: linear-gradient(135deg, #3f93d9, #70baf5); }
+.stock-thumb-medical { background: linear-gradient(135deg, #d9534f, #ff7d79); }
+.stock-thumb-cement { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+.stock-thumb-clothes { background: linear-gradient(135deg, #8b5cf6, #c084fc); }
+.stock-thumb-general { background: linear-gradient(135deg, #16a34a, #4ade80); }
+
+.stock-item-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.stock-item-category {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-top: 0.2rem;
+}
+
+.stock-reg-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.12);
+  color: #4338ca;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+body.dark-mode .stock-reg-badge {
+  background: rgba(129, 140, 248, 0.18);
+  color: #c7d2fe;
+}
+
+.stock-level-wrap {
+  min-width: 180px;
+}
+
+.stock-level-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e9eef2;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+body.dark-mode .stock-level-bar {
+  background: #334155;
+}
+
+.stock-level-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2f80ed, #56ccf2);
+}
+
+.stock-level-text {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.stock-toggle {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+}
+
+.stock-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.stock-toggle span {
+  position: absolute;
+  inset: 0;
+  background: #e5e7eb;
+  border-radius: 999px;
+  transition: 0.25s ease;
+}
+
+.stock-toggle span::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  transition: 0.25s ease;
+}
+
+.stock-toggle input:checked + span {
+  background: #1ec94c;
+}
+
+.stock-toggle input:checked + span::before {
+  transform: translateX(14px);
+}
+
+.stock-action-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.stock-action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: var(--sidebar-bg);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.18s ease;
+}
+
+.stock-action-btn:hover {
+  transform: translateY(-1px);
+  color: var(--text-primary);
+}
+
+.stock-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.stock-entries-count {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.stock-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.stock-page-btn {
+  min-width: 42px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--sidebar-bg);
+  color: var(--text-primary);
+  padding: 0 0.8rem;
+}
+
+.stock-page-btn.active {
+  background: #4b72ff;
+  color: #fff;
+  border-color: #4b72ff;
+}
+
+.stock-transactions-header h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.stock-transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.stock-transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border-light);
+}
+
+.stock-transaction-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.stock-transaction-icon.received { background: linear-gradient(135deg, #22b573, #4ddf97); }
+.stock-transaction-icon.issued { background: linear-gradient(135deg, #3f93d9, #70baf5); }
+.stock-transaction-icon.adjusted { background: linear-gradient(135deg, #f4a623, #ffbf47); }
+
+.stock-transaction-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stock-transaction-title {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stock-transaction-meta {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  margin-top: 0.2rem;
+}
+
+.stock-transaction-qty {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.stock-transaction-qty.positive { color: #1aa84b; }
+.stock-transaction-qty.negative { color: #c23535; }
+
+@media (max-width: 1200px) {
+  .stock-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stock-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stock-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  text-decoration: none;
+}

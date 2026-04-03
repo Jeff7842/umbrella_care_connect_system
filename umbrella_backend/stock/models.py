@@ -12,6 +12,8 @@ class StockItem(models.Model):
     description = models.TextField(null=True, blank=True)
     category = models.CharField(max_length=100, null=True, blank=True)
     unit = models.CharField(max_length=50, default="units")
+    stock_no = models.IntegerField(unique=True, null=True, blank=True)
+    reg_code = models.CharField(max_length=10, unique=True, null=True, blank=True)
 
     current_quantity = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     reorder_level = models.DecimalField(max_digits=12, decimal_places=2, default=0)

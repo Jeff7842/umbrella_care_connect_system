@@ -35,3 +35,19 @@ class StockAdjustmentForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 3}),
         required=False
     )
+
+class StockItemForm(forms.ModelForm):
+    class Meta:
+        model = StockItem
+        fields = [
+            "name",
+            "description",
+            "category",
+            "unit",
+            "current_quantity",
+            "reorder_level",
+            "is_active",
+        ]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }

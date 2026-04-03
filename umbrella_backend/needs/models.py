@@ -3,7 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-# Create your models here.
+
 class Need(models.Model):
     class PriorityChoices(models.TextChoices):
         LOW = "low", "Low"
@@ -12,9 +12,11 @@ class Need(models.Model):
         URGENT = "urgent", "Urgent"
 
     class StatusChoices(models.TextChoices):
-        OPEN = "open", "Open"
-        PARTIAL = "partial", "Partially Fulfilled"
+        ACTIVE = "active", "Active"
+        PENDING = "pending", "Pending"
+        PARTIAL = "partially_funded", "Partially Funded"
         FULFILLED = "fulfilled", "Fulfilled"
+        EXPIRED = "expired", "Expired"
         CLOSED = "closed", "Closed"
 
     title = models.CharField(max_length=200)
@@ -31,7 +33,7 @@ class Need(models.Model):
     status = models.CharField(
         max_length=20,
         choices=StatusChoices.choices,
-        default=StatusChoices.OPEN,
+        default=StatusChoices.ACTIVE,
     )
     posted_by_name = models.CharField(max_length=150, blank=True, null=True)
     is_closed = models.BooleanField(default=False)
@@ -59,7 +61,7 @@ class Need(models.Model):
         if self.is_closed:
             self.status = self.StatusChoices.CLOSED
         elif self.quantity_fulfilled == 0:
-            self.status = self.StatusChoices.OPEN
+            self.status = self.StatusChoices.ACTIVE
         elif self.quantity_fulfilled < self.quantity_required:
             self.status = self.StatusChoices.PARTIAL
         else:

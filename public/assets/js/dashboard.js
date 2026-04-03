@@ -1,3 +1,6 @@
+const API_BASE_URL= /*process.env.API_URL || "http://localhost:8000" || "http://127.0.0.1:8000"*/ "";
+//const API_BASE_URL = window.location.origin;
+
 const dateEl = document.getElementById("currentDate");
   const themeToggle = document.getElementById("themeToggle");
 
@@ -142,7 +145,7 @@ const dateEl = document.getElementById("currentDate");
    USER MANAGEMENT TABLE - DJANGO INTEGRATION
 ========================================= */
 
-const DJANGO_USERS_API = "/api/users/"; 
+const DJANGO_USERS_API = `${API_BASE_URL}/api/users/`; 
 const userTableBody = document.getElementById("userManagementTableBody");
 const userSearchInput = document.getElementById("userSearchInput");
 const userSortBy = document.getElementById("userSortBy");
@@ -299,8 +302,9 @@ async function fetchUsers() {
 }
 
 async function editUser(userId) {
+
   try {
-    const response = await fetch(`/api/users/${userId}/`);
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/`);
     if (!response.ok) throw new Error("Failed to load user");
 
     const user = await response.json();
@@ -326,7 +330,7 @@ async function editUser(userId) {
     const status = prompt("Status (active, paused, terminated):", user.status || "paused");
     if (status === null) return;
 
-    const updateResponse = await fetch(`/api/users/${userId}/`, {
+    const updateResponse = await fetch(`${API_BASE_URL}/api/users/${userId}/`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -359,7 +363,7 @@ async function freezeUser(userId) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`/api/users/${userId}/freeze/`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/freeze/`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -381,7 +385,7 @@ async function deleteUser(userId) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`/api/users/${userId}/`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -560,9 +564,323 @@ fetchUsers();
 })();
 
 /* =========================================
-   DONATIONS PAGE INTERACTION
+   NEEDS PAGE - DJANGO INTEGRATION
 ========================================= */
 (function () {
+  const DJANGO_NEEDS_API = `${API_BASE_URL}/needs/api/`;
+
+  const needsTableBody = document.getElementById("needsTableBody");
+  const needForm = document.getElementById("needForm");
+  const needMessageBox = document.getElementById("needMessage");
+  const needSearchInput = document.getElementById("needSearchInput");
+  const needStatusFilter = document.getElementById("needStatusFilter");
+  const needPriorityFilter = document.getElementById("needPriorityFilter");
+  const needEntriesInfo = document.getElementById("needEntriesInfo");
+  const resetNeedBtn = document.getElementById("resetNeedBtn");
+
+  if (!needsTableBody && !needForm) return;
+
+  const needState = {
+    search: "",
+    status: "",
+    priority: "",
+  };
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(name + "="));
+    return cookieValue ? decodeURIComponent(cookieValue.split("=")[1]) : null;
+  }
+
+  async function needsRequest(url, options = {}) {
+    const response = await fetch(url, {
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch (_) {}
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `Request failed with status ${response.status}`);
+    }
+
+    return data;
+  }
+
+  function showNeedMessage(message, type = "success") {
+    if (!needMessageBox) {
+      alert(message);
+      return;
+    }
+
+    needMessageBox.textContent = message;
+    needMessageBox.className = `alert alert-${type}`;
+    needMessageBox.style.display = "block";
+
+    setTimeout(() => {
+      needMessageBox.style.display = "none";
+    }, 3000);
+  }
+
+  function updateNeedEntriesInfo(total = 0) {
+    if (!needEntriesInfo) return;
+    needEntriesInfo.textContent = total
+      ? `Showing 1 to ${total} of ${total} entries`
+      : "Showing 0 to 0 of 0 entries";
+  }
+
+  function renderNeeds(needs = []) {
+    if (!needsTableBody) return;
+
+    if (!needs.length) {
+      needsTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-4 text-muted">No needs found.</td>
+        </tr>
+      `;
+      updateNeedEntriesInfo(0);
+      return;
+    }
+
+    needsTableBody.innerHTML = needs.map((need) => `
+      <tr data-need-id="${need.id}">
+        <td>${escapeHtml(need.title || "-")}</td>
+        <td>${escapeHtml(need.category || "-")}</td>
+        <td>${escapeHtml(need.quantity_required ?? "-")}</td>
+        <td>${escapeHtml(need.quantity_fulfilled ?? "-")}</td>
+        <td>${escapeHtml(need.priority || "-")}</td>
+        <td>${escapeHtml(need.deadline || "-")}</td>
+        <td>${escapeHtml(need.status || "-")}</td>
+        <td>
+          <div class="action-btn-group">
+            <button class="table-action-btn edit-btn" title="Edit Need" onclick="editNeed('${need.id}')">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="table-action-btn freeze-btn" title="Close Need" onclick="closeNeed('${need.id}')">
+              <i class="bi bi-lock"></i>
+            </button>
+            <button class="table-action-btn delete-btn" title="Delete Need" onclick="deleteNeed('${need.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+
+    updateNeedEntriesInfo(needs.length);
+  }
+
+  async function fetchNeeds() {
+  try {
+    const params = new URLSearchParams();
+
+    if (needState.search && needState.search.trim()) {
+      params.append("search", needState.search.trim());
+    }
+    if (needState.status) {
+      params.append("status", needState.status);
+    }
+    if (needState.priority) {
+      params.append("priority", needState.priority);
+    }
+
+    const url = `${DJANGO_NEEDS_API}${params.toString() ? `?${params.toString()}` : ""}`;
+    console.log("Fetching needs from:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
+
+    const rawText = await response.text();
+    console.log("Needs raw response:", rawText);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch needs (${response.status})`);
+    }
+
+    const data = rawText ? JSON.parse(rawText) : {};
+    renderNeeds(data.results || []);
+    updateNeedEntriesInfo(data.count || 0);
+
+  } catch (error) {
+    console.error("Needs fetch error:", error);
+    showNeedMessage(error.message || "Failed to load needs.", "danger");
+
+    if (needsTableBody) {
+      needsTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-4 text-danger">
+            Failed to load needs.
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+  function collectNeedFormData() {
+    return {
+      title: document.getElementById("needTitle")?.value?.trim() || "",
+      description: document.getElementById("needDescription")?.value?.trim() || "",
+      category: document.getElementById("needCategory")?.value?.trim() || "",
+      quantity_required: parseInt(document.getElementById("needQuantityRequired")?.value || "0", 10),
+      quantity_fulfilled: parseInt(document.getElementById("needQuantityFulfilled")?.value || "0", 10),
+      priority: document.getElementById("needPriority")?.value || "medium",
+      deadline: document.getElementById("needDeadline")?.value || null,
+    };
+  }
+
+  function resetNeedForm() {
+    if (needForm) needForm.reset();
+
+    const needIdField = document.getElementById("needId");
+    if (needIdField) needIdField.value = "";
+
+    const submitBtn = document.getElementById("needSubmitBtn");
+    if (submitBtn) submitBtn.textContent = "Save Need";
+  }
+
+  async function saveNeed(event) {
+    event.preventDefault();
+
+    const needId = document.getElementById("needId")?.value;
+    const payload = collectNeedFormData();
+
+    try {
+      if (needId) {
+        await needsRequest(`${DJANGO_NEEDS_API}${needId}/`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+        showNeedMessage("Need updated successfully.");
+      } else {
+        await needsRequest(DJANGO_NEEDS_API, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        showNeedMessage("Need created successfully.");
+      }
+
+      resetNeedForm();
+      await fetchNeeds();
+    } catch (error) {
+      console.error("Save need error:", error);
+      showNeedMessage(error.message, "danger");
+    }
+  }
+
+  window.editNeed = async function (needId) {
+    try {
+      const need = await needsRequest(`${DJANGO_NEEDS_API}${needId}/`, {
+        method: "GET",
+      });
+
+      document.getElementById("needId").value = need.id || "";
+      document.getElementById("needTitle").value = need.title || "";
+      document.getElementById("needDescription").value = need.description || "";
+      document.getElementById("needCategory").value = need.category || "";
+      document.getElementById("needQuantityRequired").value = need.quantity_required ?? "";
+      document.getElementById("needQuantityFulfilled").value = need.quantity_fulfilled ?? 0;
+      document.getElementById("needPriority").value = need.priority || "medium";
+      document.getElementById("needDeadline").value = need.deadline || "";
+
+      const submitBtn = document.getElementById("needSubmitBtn");
+      if (submitBtn) submitBtn.textContent = "Update Need";
+    } catch (error) {
+      console.error("Edit need load error:", error);
+      showNeedMessage(error.message, "danger");
+    }
+  };
+
+  window.deleteNeed = async function (needId) {
+    if (!confirm("Delete this need?")) return;
+
+    try {
+      await needsRequest(`${DJANGO_NEEDS_API}${needId}/`, {
+        method: "DELETE",
+      });
+      showNeedMessage("Need deleted successfully.");
+      await fetchNeeds();
+    } catch (error) {
+      console.error("Delete need error:", error);
+      showNeedMessage(error.message, "danger");
+    }
+  };
+
+  window.closeNeed = async function (needId) {
+    if (!confirm("Close this need?")) return;
+
+    try {
+      await needsRequest(`${DJANGO_NEEDS_API}${needId}/close/`, {
+        method: "POST",
+      });
+      showNeedMessage("Need closed successfully.");
+      await fetchNeeds();
+    } catch (error) {
+      console.error("Close need error:", error);
+      showNeedMessage(error.message, "danger");
+    }
+  };
+
+  if (needForm) {
+    needForm.addEventListener("submit", saveNeed);
+  }
+
+  if (resetNeedBtn) {
+    resetNeedBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      resetNeedForm();
+    });
+  }
+
+  if (needSearchInput) {
+    let timer;
+    needSearchInput.addEventListener("input", (e) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        needState.search = e.target.value.trim();
+        fetchNeeds();
+      }, 300);
+    });
+  }
+
+  if (needStatusFilter) {
+    needStatusFilter.addEventListener("change", (e) => {
+      needState.status = e.target.value;
+      fetchNeeds();
+    });
+  }
+
+  if (needPriorityFilter) {
+    needPriorityFilter.addEventListener("change", (e) => {
+      needState.priority = e.target.value;
+      fetchNeeds();
+    });
+  }
+
+  fetchNeeds();
+})();
+
+/* =========================================
+   DONATIONS PAGE - DJANGO INTEGRATION
+========================================= */
+(function () {
+  const DJANGO_DONATIONS_API = `${API_BASE_URL}/donations/api/donations/`;
+  const DJANGO_DONATIONS_STATS_API = `${API_BASE_URL}/donations/api/donations/stats/`;
+
   const donationTable = document.getElementById("donationTable");
   const donationTableBody = document.getElementById("donationTableBody");
   const donationSearchInput = document.getElementById("donationSearchInput");
@@ -579,122 +897,314 @@ fetchUsers();
   const applyFrozenColumns = document.getElementById("applyFrozenColumns");
   const markFavoriteBtn = document.getElementById("markFavoriteBtn");
   const sortButtons = document.querySelectorAll(".donation-th-btn");
+  const donationPagination = document.getElementById("donationPagination");
+
+  const donationThisMonthValue = document.getElementById("donationThisMonthValue");
+  const donationGoalValue = document.getElementById("donationGoalValue");
+  const donationDonorCount = document.getElementById("donationDonorCount");
+  const donationAllTimeValue = document.getElementById("donationAllTimeValue");
 
   if (!donationTable || !donationTableBody) return;
 
   const donationState = {
+    page: 1,
+    pageSize: 10,
     tab: "latest",
     search: "",
     status: "all",
     method: "all",
     country: "all",
-    sortKey: "",
-    sortDirection: "asc",
-    frozenColumns: []
+    ordering: "-created_at",
+    frozenColumns: [],
   };
 
-  const allRows = Array.from(donationTableBody.querySelectorAll("tr"));
-
-  function textContentOf(row, key) {
-    const target = row.querySelector(`[data-col-key="${key}"]`);
-    return (target?.innerText || "").trim().toLowerCase();
+  function getMethodClass(method) {
+    const map = {
+      mpesa: "method-mpesa",
+      paypal: "method-paypal",
+      credit_card: "method-card",
+      bank_transfer: "method-bank",
+      cash: "method-bank",
+      in_kind: "method-in-kind",
+    };
+    return map[(method || "").toLowerCase()] || "method-paypal";
   }
 
-  function amountValue(row) {
-    const raw = textContentOf(row, "lifetime").replace(/[^0-9.]/g, "");
-    return parseFloat(raw || "0");
+  function getStatusClass(status) {
+    const map = {
+      pending: "pending",
+      confirmed: "paid",
+      received: "paid",
+      cancelled: "cancled",
+    };
+    return map[(status || "").toLowerCase()] || "pending";
   }
 
-  function updateEntries() {
-    const visibleRows = Array.from(donationTableBody.querySelectorAll("tr")).filter(row => row.style.display !== "none");
-    const total = visibleRows.length;
+  function mapSortKeyToOrdering(key) {
+    const map = {
+      name: "donor_name",
+      email: "email",
+      method: "payment_method",
+      datetime: "created_at",
+      country: "country",
+      pledge: "pledge_amount",
+      lifetime: "amount",
+      status: "status",
+      towards: "need_title",
+      comment: "notes",
+    };
+    return map[key] || "created_at";
+  }
+
+  function updateDonationEntriesInfo(start = 0, end = 0, total = 0) {
+    if (!donationEntriesInfo) return;
     donationEntriesInfo.textContent = total
-      ? `Showing 1 to ${total} of ${total} entries`
+      ? `Showing ${start} to ${end} of ${total} entries`
       : "Showing 0 to 0 of 0 entries";
   }
 
-  function applyFilters() {
-    const search = donationState.search.toLowerCase();
-    const status = donationState.status;
-    const method = donationState.method;
-    const country = donationState.country;
-    const tab = donationState.tab;
+  function renderDonationPagination(currentPage = 1, numPages = 1) {
+    if (!donationPagination) return;
 
-    allRows.forEach((row) => {
-      const donorText = row.innerText.toLowerCase();
-      const rowStatus = textContentOf(row, "status");
-      const rowMethod = textContentOf(row, "method");
-      const rowCountry = textContentOf(row, "country");
-      const isFavorite = row.querySelector(".favorite-front")?.classList.contains("active");
-      const amount = amountValue(row);
+    if (numPages <= 1) {
+      donationPagination.innerHTML = "";
+      return;
+    }
 
-      let visible = true;
+    let html = `
+      <button class="donation-page-btn ${currentPage === 1 ? "disabled" : ""}" data-page="${currentPage - 1}">
+        Prev
+      </button>
+    `;
 
-      if (search && !donorText.includes(search)) visible = false;
-      if (status !== "all" && !rowStatus.includes(status)) visible = false;
-      if (method !== "all" && !rowMethod.includes(method)) visible = false;
-      if (country !== "all" && !rowCountry.includes(country.toLowerCase())) visible = false;
+    let dotsAdded = false;
 
-      if (tab === "favorites" && !isFavorite) visible = false;
-      if (tab === "top" && amount < 40) visible = false; // demo rule for top donors in last 30 days
+    for (let page = 1; page <= numPages; page++) {
+      const shouldShow =
+        page === 1 ||
+        page === numPages ||
+        Math.abs(page - currentPage) <= 1;
 
-      row.style.display = visible ? "" : "none";
+      if (shouldShow) {
+        dotsAdded = false;
+        html += `
+          <button class="donation-page-btn ${page === currentPage ? "active" : ""}" data-page="${page}">
+            ${page}
+          </button>
+        `;
+      } else if (!dotsAdded) {
+        dotsAdded = true;
+        html += `<button class="donation-page-btn dots" disabled>...</button>`;
+      }
+    }
+
+    html += `
+      <button class="donation-page-btn ${currentPage === numPages ? "disabled" : ""}" data-page="${currentPage + 1}">
+        Next
+      </button>
+    `;
+
+    donationPagination.innerHTML = html;
+
+    donationPagination.querySelectorAll("[data-page]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.classList.contains("disabled")) return;
+        donationState.page = Number(btn.dataset.page);
+        fetchDonations();
+      });
     });
-
-    updateEntries();
   }
 
-  function sortRows(key) {
-    const rows = Array.from(donationTableBody.querySelectorAll("tr"));
+  function renderDonations(donations = []) {
+    if (!donations.length) {
+      donationTableBody.innerHTML = `
+        <tr>
+          <td colspan="12" class="text-center py-4 text-muted">
+            No donations found.
+          </td>
+        </tr>
+      `;
+      return;
+    }
 
-    rows.sort((a, b) => {
-      let aVal = textContentOf(a, key);
-      let bVal = textContentOf(b, key);
+    donationTableBody.innerHTML = donations
+      .map((donation) => {
+        const favoriteClass = donation.is_favorite ? "active" : "";
+        const favoriteIcon = donation.is_favorite ? "bi-heart-fill" : "bi-heart";
 
-      if (key === "lifetime" || key === "pledge") {
-        aVal = parseFloat(aVal.replace(/[^0-9.]/g, "") || "0");
-        bVal = parseFloat(bVal.replace(/[^0-9.]/g, "") || "0");
-      }
+        return `
+          <tr data-donation-id="${donation.id}">
+            <td class="sticky-base sticky-order-col">
+              <input type="checkbox" class="donation-row-check" data-donation-id="${donation.id}">
+            </td>
 
-      if (key === "name") {
-        aVal = (a.querySelector(".donor-name-line")?.innerText || "").toLowerCase();
-        bVal = (b.querySelector(".donor-name-line")?.innerText || "").toLowerCase();
-      }
+            <td class="sticky-base sticky-donor-col" data-col-key="donor">
+              <div class="donor-cell-wrap">
+                <span
+                  class="favorite-front ${favoriteClass}"
+                  style="cursor:pointer;"
+                  onclick="toggleDonationFavorite('${donation.id}', ${!donation.is_favorite})"
+                >
+                  <i class="bi ${favoriteIcon}"></i>
+                </span>
 
-      if (aVal < bVal) return donationState.sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return donationState.sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+                <img
+                  src="${escapeHtml(donation.avatar_url || "https://i.pravatar.cc/44?img=1")}"
+                  alt="${escapeHtml(donation.donor_name || "Donor")}"
+                />
 
-    rows.forEach(row => donationTableBody.appendChild(row));
+                <div>
+                  <div class="donor-name-line">${escapeHtml(donation.row_label || donation.donor_name || "Donor")}</div>
+                  <div class="donor-ref-line">${escapeHtml(donation.reference_code || "-")}</div>
+                </div>
+              </div>
+            </td>
+
+            <td data-col-key="email">${escapeHtml(donation.email || "-")}</td>
+
+            <td data-col-key="method">
+              <span class="method-pill ${getMethodClass(donation.method)}">
+                ${escapeHtml(donation.method_label || donation.method || "-")}
+              </span>
+            </td>
+
+            <td data-col-key="datetime">${escapeHtml(donation.datetime || "-")}</td>
+            <td data-col-key="country">${escapeHtml(donation.country || "-")}</td>
+            <td data-col-key="pledge">${escapeHtml(donation.pledge || "-")}</td>
+            <td data-col-key="lifetime">${escapeHtml(donation.amount || "-")}</td>
+
+            <td data-col-key="status">
+              <span class="donation-status ${getStatusClass(donation.status)}">
+                ${escapeHtml(donation.status_label || donation.status || "-")}
+              </span>
+            </td>
+
+            <td data-col-key="towards">${escapeHtml(donation.donation_towards || "-")}</td>
+            <td data-col-key="comment">${escapeHtml(donation.comment || "-")}</td>
+
+            <td data-col-key="actions">
+              <div class="donation-actions gap-2">
+                <button class="transparent-view-btn" onclick="viewDonation('${donation.id}')">
+                  View details
+                </button>
+
+                <button class="table-action-btn edit-btn" title="Edit Donation" onclick="editDonation('${donation.id}')">
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+                <button class="table-action-btn delete-btn" title="Delete Donation" onclick="deleteDonation('${donation.id}')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
   }
 
-  donationSearchInput?.addEventListener("input", (e) => {
-    donationState.search = e.target.value.trim();
-    applyFilters();
-  });
+  async function fetchDonations() {
+    try {
+      const params = new URLSearchParams({
+        page: donationState.page,
+        page_size: donationState.pageSize,
+        search: donationState.search,
+        status: donationState.status,
+        method: donationState.method,
+        country: donationState.country,
+        tab: donationState.tab,
+        ordering: donationState.ordering,
+      });
+
+      const response = await fetch(`${DJANGO_DONATIONS_API}?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch donations");
+      }
+
+      const data = await response.json();
+      renderDonations(data.results || []);
+      updateDonationEntriesInfo(data.start || 0, data.end || 0, data.count || 0);
+      renderDonationPagination(data.page || 1, data.num_pages || 1);
+      applyFrozenColumnLayout();
+    } catch (error) {
+      console.error("Donation fetch error:", error);
+      donationTableBody.innerHTML = `
+        <tr>
+          <td colspan="12" class="text-center py-4 text-danger">
+            Failed to load donations.
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  async function fetchDonationStats() {
+    try {
+      const response = await fetch(DJANGO_DONATIONS_STATS_API, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch donation stats");
+      }
+
+      const data = await response.json();
+
+      if (donationThisMonthValue) donationThisMonthValue.textContent = data.monthly_total || "KES 0.00";
+      if (donationGoalValue) donationGoalValue.textContent = data.active_goal_percentage || "0%";
+      if (donationDonorCount) donationDonorCount.textContent = data.donor_count ?? 0;
+      if (donationAllTimeValue) donationAllTimeValue.textContent = data.all_time_total || "KES 0.00";
+    } catch (error) {
+      console.error("Donation stats error:", error);
+    }
+  }
+
+  donationSearchInput?.addEventListener("input", (() => {
+    let timer;
+    return (e) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        donationState.search = e.target.value.trim();
+        donationState.page = 1;
+        fetchDonations();
+      }, 350);
+    };
+  })());
 
   donationStatusFilter?.addEventListener("change", (e) => {
     donationState.status = e.target.value;
-    applyFilters();
+    donationState.page = 1;
+    fetchDonations();
   });
 
   donationMethodFilter?.addEventListener("change", (e) => {
     donationState.method = e.target.value;
-    applyFilters();
+    donationState.page = 1;
+    fetchDonations();
   });
 
   donationCountryFilter?.addEventListener("change", (e) => {
     donationState.country = e.target.value;
-    applyFilters();
+    donationState.page = 1;
+    fetchDonations();
   });
 
   donationTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      donationTabs.forEach(item => item.classList.remove("active"));
+      donationTabs.forEach((item) => item.classList.remove("active"));
       tab.classList.add("active");
       donationState.tab = tab.dataset.donationTab;
-      applyFilters();
+      donationState.page = 1;
+      fetchDonations();
     });
   });
 
@@ -703,15 +1213,18 @@ fetchUsers();
       const key = btn.dataset.sortKey;
       if (!key) return;
 
-      if (donationState.sortKey === key) {
-        donationState.sortDirection = donationState.sortDirection === "asc" ? "desc" : "asc";
+      const mappedKey = mapSortKeyToOrdering(key);
+
+      if (donationState.ordering === mappedKey) {
+        donationState.ordering = `-${mappedKey}`;
+      } else if (donationState.ordering === `-${mappedKey}`) {
+        donationState.ordering = mappedKey;
       } else {
-        donationState.sortKey = key;
-        donationState.sortDirection = "asc";
+        donationState.ordering = mappedKey;
       }
 
-      sortRows(key);
-      applyFilters();
+      donationState.page = 1;
+      fetchDonations();
     });
   });
 
@@ -721,20 +1234,29 @@ fetchUsers();
     });
   });
 
-  markFavoriteBtn?.addEventListener("click", () => {
-    const selectedRows = Array.from(donationTableBody.querySelectorAll("tr")).filter(row => {
-      return row.querySelector(".donation-row-check")?.checked;
-    });
+  markFavoriteBtn?.addEventListener("click", async () => {
+    const selectedIds = Array.from(
+      donationTableBody.querySelectorAll(".donation-row-check:checked")
+    ).map((checkbox) => checkbox.dataset.donationId);
 
-    selectedRows.forEach((row) => {
-      const heart = row.querySelector(".favorite-front");
-      if (!heart) return;
+    try {
+      await Promise.all(
+        selectedIds.map((id) =>
+          fetch(`${DJANGO_DONATIONS_API}${id}/`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ is_favorite: true }),
+          })
+        )
+      );
 
-      heart.classList.add("active");
-      heart.innerHTML = `<i class="bi bi-heart-fill"></i>`;
-    });
-
-    applyFilters();
+      fetchDonations();
+    } catch (error) {
+      console.error("Favorite update error:", error);
+      alert("Failed to mark favorites.");
+    }
   });
 
   donationExportToggle?.addEventListener("click", () => {
@@ -763,10 +1285,13 @@ fetchUsers();
   function applyFrozenColumnLayout() {
     clearFrozenClasses();
 
-    const frozen = Array.from(document.querySelectorAll('[data-freeze-col]:checked')).map(el => el.dataset.freezeCol);
+    const frozen = Array.from(
+      document.querySelectorAll('[data-freeze-col]:checked')
+    ).map((el) => el.dataset.freezeCol);
+
     donationState.frozenColumns = frozen;
 
-    let currentLeft = 308; // 58 for checkbox + 250 donor col
+    let currentLeft = 308;
 
     frozen.forEach((key) => {
       const head = donationTable.querySelector(`thead [data-col-key="${key}"]`);
@@ -792,8 +1317,15 @@ fetchUsers();
     donationColumnEditor?.classList.add("is-hidden");
   });
 
+  function textContentOf(row, key) {
+    const target = row.querySelector(`[data-col-key="${key}"]`);
+    return (target?.innerText || "").trim().toLowerCase();
+  }
+
   function getVisibleRowsData() {
-    const rows = Array.from(donationTableBody.querySelectorAll("tr")).filter(row => row.style.display !== "none");
+    const rows = Array.from(donationTableBody.querySelectorAll("tr")).filter(
+      (row) => row.style.display !== "none"
+    );
 
     return rows.map((row) => ({
       donor: row.querySelector(".donor-name-line")?.innerText || "",
@@ -806,7 +1338,7 @@ fetchUsers();
       amount: textContentOf(row, "lifetime"),
       status: textContentOf(row, "status"),
       donation_towards: textContentOf(row, "towards"),
-      comment: textContentOf(row, "comment")
+      comment: textContentOf(row, "comment"),
     }));
   }
 
@@ -825,7 +1357,7 @@ fetchUsers();
       "Amount",
       "Status",
       "Donation Towards",
-      "Comment"
+      "Comment",
     ];
 
     const body = rows.map((row) => [
@@ -839,59 +1371,624 @@ fetchUsers();
       row.amount,
       row.status,
       row.donation_towards,
-      row.comment
+      row.comment,
     ]);
 
-    if (type === "csv") {
+    if (type === "csv" || type === "xls") {
       const csv = [headers, ...body]
-        .map(line => line.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
+        .map((line) => line.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
         .join("\n");
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "donations-export.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-      return;
-    }
-
-    if (type === "xls") {
-      const tableHtml = `
-        <table border="1">
-          <tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>
-          ${body.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}
-        </table>
-      `;
-      const blob = new Blob([tableHtml], { type: "application/vnd.ms-excel" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "donations-export.xls";
-      a.click();
-      URL.revokeObjectURL(url);
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", `donations_export.${type === "xls" ? "xls" : "csv"}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   }
 
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".donation-export-group")) {
-      donationExportMenu?.classList.add("is-hidden");
+  window.toggleDonationFavorite = async function (donationId, makeFavorite = true) {
+    try {
+      const response = await fetch(`${DJANGO_DONATIONS_API}${donationId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ is_favorite: makeFavorite }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Favorite update failed");
+      }
+
+      fetchDonations();
+    } catch (error) {
+      console.error("Favorite toggle error:", error);
+      alert("Failed to update favorite.");
+    }
+  };
+
+  window.viewDonation = async function (donationId) {
+    try {
+      const response = await fetch(`${DJANGO_DONATIONS_API}${donationId}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load donation details");
+      }
+
+      const donation = await response.json();
+
+      alert(
+        [
+          `Donor: ${donation.donor_name || "-"}`,
+          `Reference: ${donation.reference_code || "-"}`,
+          `Email: ${donation.email || "-"}`,
+          `Method: ${donation.method_label || donation.method || "-"}`,
+          `Amount: ${donation.amount || "-"}`,
+          `Status: ${donation.status_label || donation.status || "-"}`,
+          `Towards: ${donation.donation_towards || "-"}`,
+          `Comment: ${donation.comment || "-"}`,
+        ].join("\\n")
+      );
+    } catch (error) {
+      console.error("View donation error:", error);
+      alert("Failed to load donation details.");
+    }
+  };
+
+  window.editDonation = async function (donationId) {
+    try {
+      const getResponse = await fetch(`${DJANGO_DONATIONS_API}${donationId}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!getResponse.ok) {
+        throw new Error("Failed to load donation");
+      }
+
+      const donation = await getResponse.json();
+
+      const status = prompt(
+        "Status (pending, confirmed, received, cancelled):",
+        donation.status || "pending"
+      );
+      if (status === null) return;
+
+      const notes = prompt("Comment / Notes:", donation.comment === "-" ? "" : donation.comment || "");
+      if (notes === null) return;
+
+      const patchResponse = await fetch(`${DJANGO_DONATIONS_API}${donationId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status,
+          notes,
+        }),
+      });
+
+      if (!patchResponse.ok) {
+        throw new Error("Failed to update donation");
+      }
+
+      fetchDonations();
+      fetchDonationStats();
+    } catch (error) {
+      console.error("Edit donation error:", error);
+      alert("Failed to update donation.");
+    }
+  };
+
+  window.deleteDonation = async function (donationId) {
+    const confirmed = confirm("Delete this donation permanently?");
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${DJANGO_DONATIONS_API}${donationId}/`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete donation");
+      }
+
+      fetchDonations();
+      fetchDonationStats();
+    } catch (error) {
+      console.error("Delete donation error:", error);
+      alert("Failed to delete donation.");
+    }
+  };
+
+  fetchDonationStats();
+  fetchDonations();
+})();
+
+/* =========================================
+   STOCK PAGE INTERACTION
+========================================= */
+/* =========================================
+   STOCK PAGE - DJANGO INTEGRATION
+========================================= */
+(function () {
+  const STOCK_ITEMS_API = `${API_BASE_URL}/api/stock/items/`;
+  const STOCK_TRANSACTIONS_API = `${API_BASE_URL}/api/stock/transactions/`;
+
+  const stockTable = document.getElementById("stockTable");
+  const stockTableBody = document.getElementById("stockTableBody");
+  const stockCategoryFilter = document.getElementById("stockCategoryFilter");
+  const stockLevelFilter = document.getElementById("stockLevelFilter");
+  const stockActiveFilter = document.getElementById("stockActiveFilter");
+  const stockEntriesInfo = document.getElementById("stockEntriesInfo");
+  const selectAllStock = document.getElementById("selectAllStock");
+  const stockSortBtn = document.getElementById("stockSortBtn");
+  const stockSortHeaders = document.querySelectorAll(".stock-th-btn");
+  const stockTransactionsList = document.getElementById("stockTransactionsList");
+
+  const stockTotalItems = document.getElementById("stockTotalItems");
+  const stockRecentlyReceived = document.getElementById("stockRecentlyReceived");
+  const stockActiveItems = document.getElementById("stockActiveItems");
+  const stockLowAlerts = document.getElementById("stockLowAlerts");
+
+  if (!stockTable || !stockTableBody) return;
+
+  const stockState = {
+    category: "all",
+    level: "all",
+    active: "all",
+    sortKey: "",
+    sortDirection: "asc",
+  };
+
+  function formatNumber(value) {
+    const num = Number(value || 0);
+    return Number.isInteger(num) ? String(num) : num.toFixed(2);
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function getCategoryClass(category) {
+    const key = String(category || "general").toLowerCase();
+    if (key.includes("food")) return "stock-thumb-rice";
+    if (key.includes("education")) return "stock-thumb-books";
+    if (key.includes("medical")) return "stock-thumb-medical";
+    if (key.includes("construction")) return "stock-thumb-cement";
+    if (key.includes("cloth")) return "stock-thumb-clothes";
+    return "stock-thumb-general";
+  }
+
+  function getInitial(name) {
+    return String(name || "S").trim().charAt(0).toUpperCase() || "S";
+  }
+
+  function normalizeCategory(category) {
+    const key = String(category || "general").toLowerCase();
+    if (key.includes("food")) return "food";
+    if (key.includes("cloth")) return "clothing";
+    if (key.includes("education")) return "education";
+    if (key.includes("medical")) return "medical";
+    if (key.includes("construction")) return "construction";
+    return "general";
+  }
+
+  function getStockPercent(quantity, reorderLevel) {
+    const qty = Number(quantity || 0);
+    const reorder = Number(reorderLevel || 0);
+
+    if (qty <= 0) return 0;
+    if (reorder <= 0) return 100;
+
+    const maxReference = reorder * 2;
+    return Math.max(5, Math.min(100, Math.round((qty / maxReference) * 100)));
+  }
+
+  function getLevelFromValues(quantity, reorder) {
+    const qty = Number(quantity || 0);
+    const reorderLevel = Number(reorder || 0);
+
+    if (qty <= 0) return "critical";
+    if (reorderLevel > 0 && qty <= reorderLevel) return "critical";
+    if (reorderLevel > 0 && qty <= reorderLevel * 1.5) return "low";
+    return "healthy";
+  }
+
+  function getVisibleRows() {
+    return Array.from(stockTableBody.querySelectorAll("tr")).filter(
+      (row) => row.style.display !== "none"
+    );
+  }
+
+  function updateStockEntries() {
+    const visibleRows = getVisibleRows();
+    const total = visibleRows.length;
+
+    if (stockEntriesInfo) {
+      stockEntriesInfo.textContent = total
+        ? `Showing 1 to ${total} of ${total} entries`
+        : "Showing 0 to 0 of 0 entries";
+    }
+  }
+
+  function wireStockToggles() {
+    stockTableBody.querySelectorAll(".stock-toggle input").forEach((toggle) => {
+      if (toggle.dataset.bound === "true") return;
+      toggle.dataset.bound = "true";
+
+      toggle.addEventListener("change", (e) => {
+        const row = e.target.closest("tr");
+        if (!row) return;
+        row.dataset.active = e.target.checked ? "true" : "false";
+        applyStockFilters();
+      });
+    });
+  }
+
+  function renderStockItems(items = []) {
+    if (!items.length) {
+      stockTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-4 text-muted">No stock items found.</td>
+        </tr>
+      `;
+      updateStockEntries();
+      return;
     }
 
-    if (!e.target.closest(".donation-columns-group")) {
-      donationColumnEditor?.classList.add("is-hidden");
+    stockTableBody.innerHTML = items
+      .map((item) => {
+        const quantity = Number(item.current_quantity || 0);
+        const reorderLevel = Number(item.reorder_level || 0);
+        const percent = getStockPercent(quantity, reorderLevel);
+        const category = item.category || "General";
+        const isActive = !!item.is_active;
+
+        return `
+          <tr
+            data-category="${normalizeCategory(category)}"
+            data-active="${isActive ? "true" : "false"}"
+            data-quantity="${quantity}"
+            data-reorder="${reorderLevel}"
+          >
+            <td><input type="checkbox" class="stock-row-check" /></td>
+
+            <td>
+              <div class="stock-item-cell">
+                <div class="stock-thumb ${getCategoryClass(category)}">${getInitial(item.name)}</div>
+                <div>
+                  <div class="stock-item-name">${escapeHtml(item.name || "-")}</div>
+                  <div class="stock-item-category">${escapeHtml(category)}</div>
+                </div>
+              </div>
+            </td>
+
+            <td><span class="stock-reg-badge">${escapeHtml(item.reg_code || "-")}</span></td>
+
+            <td>${escapeHtml(formatDate(item.updated_at))}</td>
+
+            <td>
+              <div class="stock-level-wrap">
+                <div class="stock-level-bar">
+                  <span style="width: ${percent}%;"></span>
+                </div>
+                <div class="stock-level-text">
+                  ${escapeHtml(formatNumber(quantity))} / Reorder ${escapeHtml(formatNumber(reorderLevel))}
+                </div>
+              </div>
+            </td>
+
+            <td>${escapeHtml(item.unit || "-")}</td>
+
+            <td>
+              <label class="stock-toggle">
+                <input type="checkbox" ${isActive ? "checked" : ""} />
+                <span></span>
+              </label>
+            </td>
+
+            <td>
+              <div class="stock-action-group">
+                <button class="stock-action-btn" title="View">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="stock-action-btn" title="More">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    wireStockToggles();
+    updateStockEntries();
+  }
+
+  function getTransactionIcon(tx) {
+    const type = String(tx.transaction_type || "").toLowerCase();
+    if (type === "in") return { cls: "received", icon: "bi-arrow-down-circle" };
+    if (type === "out") return { cls: "issued", icon: "bi-arrow-up-circle" };
+    return { cls: "adjusted", icon: "bi-sliders" };
+  }
+
+  function getTransactionLabel(tx) {
+    const type = String(tx.transaction_type || "").toLowerCase();
+    if (type === "in") return "received";
+    if (type === "out") return "issued";
+    return "adjusted";
+  }
+
+  function getTransactionSign(tx) {
+    return String(tx.transaction_type || "").toLowerCase() === "out" ? "-" : "+";
+  }
+
+  function renderStockTransactions(transactions = []) {
+    if (!stockTransactionsList) return;
+
+    if (!transactions.length) {
+      stockTransactionsList.innerHTML = `
+        <div class="stock-transaction-item">
+          <div class="stock-transaction-content">
+            <div class="stock-transaction-title">No recent stock transactions</div>
+            <div class="stock-transaction-meta">New stock activity will appear here.</div>
+          </div>
+        </div>
+      `;
+      return;
     }
 
-    const favoriteBtn = e.target.closest(".favorite-front");
-    if (favoriteBtn) {
-      favoriteBtn.classList.toggle("active");
-      favoriteBtn.innerHTML = favoriteBtn.classList.contains("active")
-        ? `<i class="bi bi-heart-fill"></i>`
-        : `<i class="bi bi-heart"></i>`;
-      applyFilters();
+    stockTransactionsList.innerHTML = transactions
+      .slice(0, 6)
+      .map((tx) => {
+        const iconMeta = getTransactionIcon(tx);
+        const itemName = tx.stock_item_name || "Stock Item";
+        const sourceLabel = tx.source_display || tx.source || "manual";
+        const signedQty = `${getTransactionSign(tx)}${formatNumber(tx.quantity)}`;
+
+        return `
+          <div class="stock-transaction-item">
+            <div class="stock-transaction-icon ${iconMeta.cls}">
+              <i class="bi ${iconMeta.icon}"></i>
+            </div>
+            <div class="stock-transaction-content">
+              <div class="stock-transaction-title">${escapeHtml(itemName)} ${getTransactionLabel(tx)}</div>
+              <div class="stock-transaction-meta">
+                ${escapeHtml(sourceLabel)} · ${escapeHtml(formatDateTime(tx.created_at))} · Balance after: ${escapeHtml(formatNumber(tx.balance_after))}
+              </div>
+            </div>
+            <div class="stock-transaction-qty ${getTransactionSign(tx) === "-" ? "negative" : "positive"}">
+              ${escapeHtml(signedQty)}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function updateStockStats(items = [], transactions = []) {
+    const total = items.length;
+    const active = items.filter((item) => !!item.is_active).length;
+    const low = items.filter((item) =>
+      getLevelFromValues(item.current_quantity, item.reorder_level) !== "healthy"
+    ).length;
+
+    const recentReceived = transactions
+      .filter((tx) => String(tx.transaction_type || "").toLowerCase() === "in")
+      .reduce((sum, tx) => sum + Number(tx.quantity || 0), 0);
+
+    if (stockTotalItems) stockTotalItems.textContent = formatNumber(total);
+    if (stockRecentlyReceived) stockRecentlyReceived.textContent = formatNumber(recentReceived);
+    if (stockActiveItems) stockActiveItems.textContent = formatNumber(active);
+    if (stockLowAlerts) stockLowAlerts.textContent = formatNumber(low);
+  }
+
+  function applyStockFilters() {
+    const rows = Array.from(stockTableBody.querySelectorAll("tr"));
+
+    rows.forEach((row) => {
+      const category = row.dataset.category || "";
+      const active = row.dataset.active || "false";
+      const quantity = parseFloat(row.dataset.quantity || "0");
+      const reorder = parseFloat(row.dataset.reorder || "0");
+      const level = getLevelFromValues(quantity, reorder);
+
+      let visible = true;
+
+      if (stockState.category !== "all" && category !== stockState.category) visible = false;
+
+      if (stockState.active !== "all") {
+        if (stockState.active === "active" && active !== "true") visible = false;
+        if (stockState.active === "inactive" && active !== "false") visible = false;
+      }
+
+      if (stockState.level !== "all" && level !== stockState.level) visible = false;
+
+      row.style.display = visible ? "" : "none";
+    });
+
+    updateStockEntries();
+  }
+
+  function getText(row, selector) {
+    return (row.querySelector(selector)?.innerText || "").trim().toLowerCase();
+  }
+
+  function sortStockRows(key) {
+    const rows = Array.from(stockTableBody.querySelectorAll("tr"));
+
+    rows.sort((a, b) => {
+      let aVal = "";
+      let bVal = "";
+
+      if (key === "name") {
+        aVal = getText(a, ".stock-item-name");
+        bVal = getText(b, ".stock-item-name");
+      } else if (key === "reg") {
+        aVal = getText(a, ".stock-reg-badge");
+        bVal = getText(b, ".stock-reg-badge");
+      } else if (key === "updated") {
+        aVal = getText(a, "td:nth-child(4)");
+        bVal = getText(b, "td:nth-child(4)");
+      } else if (key === "quantity") {
+        aVal = parseFloat(a.dataset.quantity || "0");
+        bVal = parseFloat(b.dataset.quantity || "0");
+      }
+
+      if (aVal < bVal) return stockState.sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return stockState.sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    rows.forEach((row) => stockTableBody.appendChild(row));
+  }
+
+  async function fetchStockItems() {
+    const response = await fetch(STOCK_ITEMS_API, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch stock items");
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
+  }
+
+  async function fetchStockTransactions() {
+    const response = await fetch(STOCK_TRANSACTIONS_API, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch stock transactions");
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.results || []);
+  }
+
+  async function loadStockData() {
+    try {
+      const [items, transactions] = await Promise.all([
+        fetchStockItems(),
+        fetchStockTransactions(),
+      ]);
+
+      renderStockItems(items);
+      renderStockTransactions(transactions);
+      updateStockStats(items, transactions);
+      applyStockFilters();
+    } catch (error) {
+      console.error("Stock load error:", error);
+
+      stockTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-4 text-danger">Failed to load stock items.</td>
+        </tr>
+      `;
+
+      if (stockTransactionsList) {
+        stockTransactionsList.innerHTML = `
+          <div class="stock-transaction-item">
+            <div class="stock-transaction-content">
+              <div class="stock-transaction-title text-danger">Failed to load stock transactions</div>
+              <div class="stock-transaction-meta">Check your stock API endpoints.</div>
+            </div>
+          </div>
+        `;
+      }
     }
+  }
+
+  stockCategoryFilter?.addEventListener("change", (e) => {
+    stockState.category = e.target.value;
+    applyStockFilters();
   });
 
-  applyFilters();
+  stockLevelFilter?.addEventListener("change", (e) => {
+    stockState.level = e.target.value;
+    applyStockFilters();
+  });
+
+  stockActiveFilter?.addEventListener("change", (e) => {
+    stockState.active = e.target.value;
+    applyStockFilters();
+  });
+
+  stockSortHeaders.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.sortKey;
+      if (!key) return;
+
+      if (stockState.sortKey === key) {
+        stockState.sortDirection = stockState.sortDirection === "asc" ? "desc" : "asc";
+      } else {
+        stockState.sortKey = key;
+        stockState.sortDirection = "asc";
+      }
+
+      sortStockRows(key);
+      applyStockFilters();
+    });
+  });
+
+  stockSortBtn?.addEventListener("click", () => {
+    stockState.sortKey = "quantity";
+    stockState.sortDirection = stockState.sortDirection === "asc" ? "desc" : "asc";
+    sortStockRows("quantity");
+    applyStockFilters();
+  });
+
+  selectAllStock?.addEventListener("change", (e) => {
+    stockTableBody.querySelectorAll(".stock-row-check").forEach((checkbox) => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+
+  loadStockData();
 })();
+
+document.querySelectorAll(".stock-nav-link").forEach((link) => {
+  link.addEventListener("click", () => {
+    localStorage.setItem("umbrellaActivePage", "stock");
+  });
+});
