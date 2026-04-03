@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donate Now | Umbrella Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/needs.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+  <script src="assets/js/client-navbar.js" type="text/javascript" defer></script>
+  <style>
+    .flow-shell { padding: 34px 0 90px; }
+    .flow-card {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .flow-title { margin:0 0 8px; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:900; }
+    .flow-subtext { margin:0 0 22px; color:var(--muted); line-height:1.7; }
+    .flow-tag {
+      display:inline-flex; padding:10px 16px; border-radius:999px;
+      background:var(--brand-soft); color:var(--brand-dark); font-weight:800; margin-bottom:16px;
+    }
+    .need-box {
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--brand-soft) 26%, var(--white) 74%);
+      border-radius:24px;
+      padding:18px;
+      margin-bottom:22px;
+    }
+    .need-box h3 { margin:0 0 8px; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .field { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+    .field label { font-weight:800; font-size:0.95rem; }
+    .field input, .field select, .field textarea {
+      width:100%; min-height:56px; border-radius:18px; border:1px solid var(--line);
+      background:var(--white); color:var(--text); padding:14px 16px; outline:none;
+    }
+    .field textarea { min-height:120px; resize:vertical; }
+    .choice-group { display:flex; flex-wrap:wrap; gap:12px; }
+    .choice-pill { position:relative; }
+    .choice-pill input { position:absolute; opacity:0; pointer-events:none; }
+    .choice-pill span {
+      min-height:52px; padding:0 18px; border-radius:999px; border:1px solid var(--line);
+      background:var(--white); display:inline-flex; align-items:center; justify-content:center;
+      font-weight:800; cursor:pointer;
+    }
+    .choice-pill input:checked + span {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+      box-shadow: 0 0 0 4px var(--green-soft);
+    }
+    .check-wrap {
+      display:flex; align-items:flex-start; gap:10px; margin-bottom:14px; color:var(--muted); line-height:1.6;
+    }
+    .submit-btn {
+      width:100%; height:60px; border:none; border-radius:20px;
+      background: linear-gradient(135deg, #d80000, #a40000);
+      color:white; font-weight:900; font-size:1rem; cursor:pointer;
+    }
+    .hidden { display:none !important; }
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="light-mode">
+    <main-navbar-component></main-navbar-component>
+  <div class="flow-shell container">
+    <div class="flow-card">
+      <span class="flow-tag">Instant Donation</span>
+      <h1 class="flow-title">Complete your donation</h1>
+      <p class="flow-subtext">
+        Donations require a donor account, a valid amount between KES 50 and KES 5,000,000,
+        a payment method and consent to policy and payment authorization.
+      </p>
+
+      <div class="need-box" id="donateNeedBox">
+        <h3>Loading selected need...</h3>
+        <p>Please wait while the donation context is prepared.</p>
+      </div>
+
+      <form id="donateForm">
+        <div class="grid-2">
+          <div class="field">
+            <label for="donorAccount">Select account</label>
+            <select id="donorAccount" required>
+              <option value="">Choose your donor account</option>
+              <option value="personal-main">Jeff Main Account</option>
+              <option value="family-account">Family Support Account</option>
+              <option value="company-impact">Company Impact Account</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="donationAmount">Donation amount (KES)</label>
+            <input type="number" id="donationAmount" min="50" max="5000000" step="50" placeholder="Enter donation amount" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Payment method</label>
+          <div class="choice-group">
+            <label class="choice-pill"><input type="radio" name="paymentMethod" value="mpesa" checked><span>M-Pesa</span></label>
+            <label class="choice-pill"><input type="radio" name="paymentMethod" value="card"><span>Card</span></label>
+            <label class="choice-pill"><input type="radio" name="paymentMethod" value="paypal"><span>PayPal</span></label>
+          </div>
+        </div>
+
+        <div id="donationPaymentFields"></div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="donorName">Donor name</label>
+            <input type="text" id="donorName" placeholder="Enter donor name" required>
+          </div>
+
+          <div class="field">
+            <label for="donorEmail">Donor email</label>
+            <input type="email" id="donorEmail" placeholder="Enter donor email" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="donorComment">Comment</label>
+          <textarea id="donorComment" placeholder="Optional comment for this donation"></textarea>
+        </div>
+
+        <label class="check-wrap">
+          <input type="checkbox" id="donationConsent" required>
+          <span>I confirm this donation is authorized, linked to my account, and can be processed for the selected need.</span>
+        </label>
+
+        <label class="check-wrap">
+          <input type="checkbox" id="donationTerms" required>
+          <span>I accept the donation terms, privacy policy and any provider-specific payment checks that may apply.</span>
+        </label>
+
+        <button type="submit" class="submit-btn">Donate Now</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="donateModal">
+    <div class="modal-card" id="donateModalCard">
+      <div class="modal-icon" id="donateModalIcon"><i class="bi bi-check2-circle"></i></div>
+      <h3 id="donateModalTitle">Donation successful</h3>
+      <p id="donateModalText">Your payment has been submitted successfully.</p>
+      <button type="button" class="modal-btn" id="donateModalClose">Close</button>
+    </div>
+  </div>
+
+  <script src="needs.js"></script>
+  <script>
+    const donateModal = document.getElementById("donateModal");
+    const donateModalCard = document.getElementById("donateModalCard");
+    const donateModalIcon = document.getElementById("donateModalIcon");
+    const donateModalTitle = document.getElementById("donateModalTitle");
+    const donateModalText = document.getElementById("donateModalText");
+    const donateModalClose = document.getElementById("donateModalClose");
+    const donateNeedBox = document.getElementById("donateNeedBox");
+    const donationPaymentFields = document.getElementById("donationPaymentFields");
+    const donateForm = document.getElementById("donateForm");
+    const donationAmount = document.getElementById("donationAmount");
+
+    const params = new URLSearchParams(window.location.search);
+    const needId = params.get("need") || localStorage.getItem("selectedNeedId");
+    const urlAmount = params.get("amount");
+    const savedAmount = localStorage.getItem("selectedAmount");
+    const selectedNeed = (window.UMBRELLA_NEEDS || []).find(item => item.id === needId);
+
+    function openDonationModal(type, title, text) {
+      donateModalCard.classList.remove("error");
+      donateModalIcon.innerHTML = type === "error"
+        ? '<i class="bi bi-x-circle"></i>'
+        : '<i class="bi bi-check2-circle"></i>';
+
+      if (type === "error") donateModalCard.classList.add("error");
+      donateModalTitle.textContent = title;
+      donateModalText.textContent = text;
+      donateModal.classList.remove("hidden");
+    }
+
+    function closeDonationModal() {
+      donateModal.classList.add("hidden");
+    }
+
+    function renderNeedSummary() {
+      if (!selectedNeed) {
+        donateNeedBox.innerHTML = `
+          <h3>Need not found</h3>
+          <p>The selected need could not be resolved. Return to the needs page and try again.</p>
+        `;
+        return;
+      }
+
+      donateNeedBox.innerHTML = `
+        <h3>You are donating toward: ${selectedNeed.title}</h3>
+        <p>${selectedNeed.description}</p>
+        <p><strong>Current progress:</strong> ${window.UMBRELLA_UTILS.formatKES(selectedNeed.raised)} raised out of ${selectedNeed.goal.toLocaleString("en-KE")}</p>
+      `;
+    }
+
+    function renderPaymentFields(method) {
+      if (method === "mpesa") {
+        donationPaymentFields.innerHTML = `
+          <div class="grid-2">
+            <div class="field">
+              <label for="mpesaPhone">M-Pesa phone number</label>
+              <input type="tel" id="mpesaPhone" placeholder="+254 7XX XXX XXX" required>
+            </div>
+            <div class="field">
+              <label for="mpesaName">Registered M-Pesa name</label>
+              <input type="text" id="mpesaName" placeholder="Enter registered M-Pesa name" required>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (method === "card") {
+        donationPaymentFields.innerHTML = `
+          <div class="grid-2">
+            <div class="field">
+              <label for="cardNumber">Card number</label>
+              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+            </div>
+            <div class="field">
+              <label for="cardExpiry">Expiry date</label>
+              <input type="text" id="cardExpiry" placeholder="MM/YY" required>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="cardCvv">CVV</label>
+              <input type="password" id="cardCvv" placeholder="CVV" required>
+            </div>
+            <div class="field">
+              <label for="billingCountry">Billing country</label>
+              <input type="text" id="billingCountry" placeholder="Enter billing country" required>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      donationPaymentFields.innerHTML = `
+        <div class="grid-2">
+          <div class="field">
+            <label for="paypalEmail">PayPal email</label>
+            <input type="email" id="paypalEmail" placeholder="Enter PayPal email" required>
+          </div>
+          <div class="field">
+            <label for="paypalName">PayPal account name</label>
+            <input type="text" id="paypalName" placeholder="Enter PayPal account name" required>
+          </div>
+        </div>
+      `;
+    }
+
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(input => {
+      input.addEventListener("change", e => renderPaymentFields(e.target.value));
+    });
+
+    donateForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (!selectedNeed) {
+        openDonationModal("error", "Donation failed", "No valid need is attached to this donation.");
+        return;
+      }
+
+      const amount = Number(donationAmount.value);
+      if (!amount || amount < 50 || amount > 5000000) {
+        openDonationModal("error", "Invalid amount", "Donation amount must be between KES 50 and KES 5,000,000.");
+        return;
+      }
+
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+
+      const payload = {
+        need_id: selectedNeed.id,
+        donor_account: document.getElementById("donorAccount").value,
+        amount,
+        payment_method: paymentMethod,
+        donor_name: document.getElementById("donorName").value,
+        donor_email: document.getElementById("donorEmail").value,
+        comment: document.getElementById("donorComment").value,
+        consent: document.getElementById("donationConsent").checked,
+        terms: document.getElementById("donationTerms").checked
+      };
+
+      console.log("SEND DONATION TO DJANGO / SUPABASE:", payload);
+
+      openDonationModal(
+        "success",
+        "Donation submitted",
+        `Your donation toward ${selectedNeed.title} has been captured on the frontend. Connect this form to your Django payment flow and Supabase tables next.`
+      );
+
+      donateForm.reset();
+      renderPaymentFields("mpesa");
+    });
+
+    donateModalClose.addEventListener("click", closeDonationModal);
+    donateModal.addEventListener("click", (e) => {
+      if (e.target === donateModal) closeDonationModal();
+    });
+
+    if (urlAmount && urlAmount !== "custom") {
+      donationAmount.value = urlAmount;
+    } else if (savedAmount && savedAmount !== "custom") {
+      donationAmount.value = savedAmount;
+    }
+
+    renderNeedSummary();
+    renderPaymentFields("mpesa");
+  </script>
+</body>
+</html>

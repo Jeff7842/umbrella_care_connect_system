@@ -32,11 +32,16 @@
       --toggle-bg: #1e2f3fcc;
       background: #0b1a2a;
     }
-    body { background-color: inherit; color: var(--text); backdrop-filter: blur(0); }
+    body { 
+      background-color: inherit; 
+      color: var(--text); 
+      -webkit-backdrop-filter: blur(0);
+      backdrop-filter: blur(0); }
 
     .auth-wrapper {
       width: 100%;
       background: #fef9f0;
+      -webkit-backdrop-filter: blur(14px);
       backdrop-filter: blur(14px);
       box-shadow: var(--shadow);
       overflow: hidden;
@@ -87,6 +92,7 @@
       border-radius: 60px;
       padding: 6px;
       display: inline-flex;
+      -webkit-backdrop-filter: blur(8px);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255,255,255,0.2);
     }
@@ -114,6 +120,7 @@
       background: rgba(255,255,255,0.1);
       border-radius: 60px;
       border: 1px solid var(--border-light);
+      -webkit-backdrop-filter: blur(4px);
       backdrop-filter: blur(4px);
       overflow: hidden;
     }
