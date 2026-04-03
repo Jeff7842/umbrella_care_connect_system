@@ -1,3 +1,5 @@
+const API_BASE_URL= process.env.API_URL || "http://localhost:8000";
+
 const dateEl = document.getElementById("currentDate");
   const themeToggle = document.getElementById("themeToggle");
 
@@ -142,7 +144,7 @@ const dateEl = document.getElementById("currentDate");
    USER MANAGEMENT TABLE - DJANGO INTEGRATION
 ========================================= */
 
-const DJANGO_USERS_API = "/api/users/"; 
+const DJANGO_USERS_API = `${API_BASE_URL}/api/users/`; 
 const userTableBody = document.getElementById("userManagementTableBody");
 const userSearchInput = document.getElementById("userSearchInput");
 const userSortBy = document.getElementById("userSortBy");
@@ -300,7 +302,7 @@ async function fetchUsers() {
 
 async function editUser(userId) {
   try {
-    const response = await fetch(`/api/users/${userId}/`);
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/`);
     if (!response.ok) throw new Error("Failed to load user");
 
     const user = await response.json();
@@ -326,7 +328,7 @@ async function editUser(userId) {
     const status = prompt("Status (active, paused, terminated):", user.status || "paused");
     if (status === null) return;
 
-    const updateResponse = await fetch(`/api/users/${userId}/`, {
+    const updateResponse = await fetch(`${API_BASE_URL}/api/users/${userId}/`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -359,7 +361,7 @@ async function freezeUser(userId) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`/api/users/${userId}/freeze/`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/freeze/`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -381,7 +383,7 @@ async function deleteUser(userId) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`/api/users/${userId}/`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
