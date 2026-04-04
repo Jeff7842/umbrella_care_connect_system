@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Umbrella Donor Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/dashboard.css" />
+</head>
+<body class="light-mode">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><i class="bi bi-umbrella"></i></div>
+        <div>
+          <h1>Umbrella</h1>
+          <p>Donor Portal</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-page="overview"><i class="bi bi-grid-1x2-fill"></i><span>Overview</span></button>
+        <button class="nav-item" data-page="needs"><i class="bi bi-basket2-fill"></i><span>Needs</span></button>
+        <button class="nav-item" data-page="events"><i class="bi bi-calendar-event-fill"></i><span>Events</span></button>
+        <button class="nav-item" data-page="history"><i class="bi bi-clock-history"></i><span>History</span></button>
+        <button class="nav-item" data-page="pledges"><i class="bi bi-wallet2"></i><span>Pledges</span></button>
+        <button class="nav-item" data-page="profile"><i class="bi bi-person-circle"></i><span>Profile</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="themeToggle" class="theme-toggle"><i class="bi bi-moon-stars-fill"></i><span>Theme</span></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Donor workspace</p>
+          <h2 id="pageTitle">Overview</h2>
+        </div>
+        <div class="topbar-actions">
+          <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input id="globalSearch" type="text" placeholder="Search needs, events, pledges..." />
+          </div>
+          <button class="icon-btn"><i class="bi bi-bell-fill"></i></button>
+          <div class="profile-chip">
+            <img src="https://i.pravatar.cc/100?img=12" alt="Donor profile">
+            <div>
+              <strong>Jeff</strong>
+              <span>Active donor</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="breadcrumbs" id="breadcrumbs">Home / Overview</div>
+
+      <section class="page active" data-page="overview">
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-icon amber"><i class="bi bi-cash-stack"></i></span>
+            <div>
+              <small>Total donated</small>
+              <strong id="statTotalDonated">KES 0</strong>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon green"><i class="bi bi-journal-check"></i></span>
+            <div>
+              <small>Active pledges</small>
+              <strong id="statActivePledges">0</strong>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon blue"><i class="bi bi-heart-fill"></i></span>
+            <div>
+              <small>Needs supported</small>
+              <strong id="statNeedsSupported">0</strong>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon red"><i class="bi bi-calendar2-week-fill"></i></span>
+            <div>
+              <small>Upcoming events</small>
+              <strong id="statUpcomingEvents">0</strong>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid-two">
+          <section class="panel">
+            <div class="panel-head">
+              <h3><i class="bi bi-calendar-event"></i> Upcoming events</h3>
+              <button class="link-btn" data-go="events">View all</button>
+            </div>
+            <div id="overviewEvents" class="stack-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3><i class="bi bi-clock-history"></i> Recent activity</h3>
+              <button class="link-btn" data-go="history">View history</button>
+            </div>
+            <div id="overviewHistory" class="stack-list"></div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3><i class="bi bi-basket2-fill"></i> Available needs</h3>
+            <button class="link-btn" data-go="needs">Open needs board</button>
+          </div>
+          <div id="overviewNeeds" class="needs-grid"></div>
+        </section>
+      </section>
+
+      <section class="page" data-page="needs">
+        <section class="panel">
+          <div class="panel-head">
+            <h3><i class="bi bi-basket2-fill"></i> Live needs board</h3>
+            <div class="filters">
+              <select id="needStatusFilter">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="urgent">Urgent</option>
+                <option value="closed">Closed</option>
+              </select>
+              <select id="needSortFilter">
+                <option value="latest">Newest first</option>
+                <option value="goal">Highest goal</option>
+                <option value="progress">Highest progress</option>
+              </select>
+            </div>
+          </div>
+          <div id="needsBoard" class="needs-grid"></div>
+        </section>
+      </section>
+
+      <section class="page" data-page="events">
+        <section class="panel">
+          <div class="panel-head">
+            <h3><i class="bi bi-calendar2-event-fill"></i> Upcoming donor events</h3>
+          </div>
+          <div id="eventsBoard" class="events-grid"></div>
+        </section>
+      </section>
+
+      <section class="page" data-page="history">
+        <section class="panel">
+          <div class="panel-head">
+            <h3><i class="bi bi-receipt-cutoff"></i> Contributions history</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Reference</th>
+                  <th>Type</th>
+                  <th>Towards</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="historyTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="page" data-page="pledges">
+        <div class="grid-two">
+          <section class="panel">
+            <div class="panel-head">
+              <h3><i class="bi bi-wallet2"></i> Active pledges</h3>
+            </div>
+            <div id="activePledges" class="stack-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3><i class="bi bi-check2-square"></i> Completed and cancelled</h3>
+            </div>
+            <div id="pastPledges" class="stack-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" data-page="profile">
+        <section class="panel">
+          <div class="panel-head">
+            <h3><i class="bi bi-person-circle"></i> Donor account summary</h3>
+          </div>
+          <div class="profile-card">
+            <div class="profile-meta">
+              <img src="https://i.pravatar.cc/140?img=12" alt="Jeff">
+              <div>
+                <h3>Jeff</h3>
+                <p>Email: jeff@example.com</p>
+                <p>Role: donor</p>
+                <p>Status: active</p>
+              </div>
+            </div>
+            <div class="profile-actions">
+              <button class="primary-btn">Edit profile</button>
+              <button class="ghost-btn">Manage payment methods</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="actionModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeModal"><i class="bi bi-x-lg"></i></button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/donors-dashboard.js"></script>
+  <script src="../assets/js/dashboard.js"></script>
+</body>
+</html>

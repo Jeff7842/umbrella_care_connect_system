@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify Authentication | Umbrella Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <style>
+    :root{
+      --brand:#f4a623;
+      --brand-dark:#835500;
+      --surface:#f7f7fa;
+      --surface-2:#ffffff;
+      --surface-3:#f0f1f5;
+      --text:#151823;
+      --text-soft:#71829d;
+      --border:#e6ddd2;
+      --shadow:0 20px 40px rgba(17, 28, 43, 0.08);
+    }
+
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; font-family:"Inter", sans-serif; background:var(--surface); color:var(--text); }
+    body { min-height:100vh; display:flex; flex-direction:column; }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:28px 32px;
+      background:rgba(255,255,255,0.74);
+      backdrop-filter:blur(18px);
+      box-shadow:0 0 40px rgba(0,0,0,0.04);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      font-size:1.05rem;
+      font-weight:800;
+      letter-spacing:-0.03em;
+    }
+
+    .brand i:first-child{ color:#64758f; font-size:1.6rem; }
+    .theme-btn{ border:0; background:transparent; font-size:1.8rem; color:#6c7a92; cursor:pointer; }
+
+    .page{
+      flex:1;
+      width:min(100%, 1320px);
+      margin:0 auto;
+      padding:42px 24px 70px;
+    }
+
+    .hero{
+      position:relative;
+      margin-bottom:34px;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      left:-20px;
+      top:-24px;
+      width:140px;
+      height:140px;
+      border-radius:50%;
+      background:rgba(244,166,35,0.08);
+      filter:blur(30px);
+      pointer-events:none;
+    }
+
+    .hero-badge{
+      position:relative;
+      z-index:1;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:14px 20px;
+      border-radius:999px;
+      background:#d9e5ed;
+      color:#0a6a8a;
+      font-size:.9rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:28px;
+    }
+
+    .hero h1{
+      position:relative;
+      z-index:1;
+      margin:0 0 14px;
+      font-size:4.25rem;
+      line-height:.95;
+      letter-spacing:-0.07em;
+    }
+
+    .hero p{
+      position:relative;
+      z-index:1;
+      margin:0;
+      max-width:620px;
+      color:var(--text-soft);
+      font-size:1.18rem;
+      line-height:1.7;
+    }
+
+    .otp-card{
+      width:min(100%, 620px);
+      margin-top:56px;
+      background:#fffdfa;
+      border-radius:40px;
+      padding:44px;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .otp-card::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:4px;
+      background:linear-gradient(90deg, transparent, rgba(244,166,35,.65), transparent);
+    }
+
+    .otp-form{
+      display:flex;
+      flex-direction:column;
+      gap:28px;
+    }
+
+    .otp-grid{
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:14px;
+    }
+
+    .otp-digit{
+      width:100%;
+      height:112px;
+      border:1px solid transparent;
+      background:#eff0f4;
+      border-radius:28px;
+      text-align:center;
+      font-size:2rem;
+      font-weight:900;
+      color:#687486;
+      outline:none;
+      transition:.2s ease;
+    }
+
+    .otp-digit:focus{
+      background:#fff;
+      border-color:rgba(244,166,35,.38);
+      box-shadow:0 0 0 4px rgba(244,166,35,.12);
+      color:#151823;
+    }
+
+    .primary-btn{
+      height:74px;
+      border:0;
+      border-radius:999px;
+      background:linear-gradient(135deg, #f0a51f 0%, #f4a623 100%);
+      color:#5a3b00;
+      font-size:1.16rem;
+      font-weight:900;
+      letter-spacing:-0.02em;
+      cursor:pointer;
+      box-shadow:0 16px 30px rgba(244,166,35,.22);
+      transition:.2s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .primary-btn:hover{ transform:translateY(-1px) scale(1.01); }
+    .primary-btn:disabled{ opacity:.7; cursor:not-allowed; }
+
+    .otp-meta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+      color:#95a2b6;
+      font-size:1rem;
+    }
+
+    .otp-meta button{
+      border:0;
+      background:transparent;
+      color:#996300;
+      font-weight:900;
+      cursor:pointer;
+      font-size:1rem;
+    }
+
+    .bottom-nav{
+      margin-top:46px;
+      text-align:center;
+    }
+
+    .bottom-nav a{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      text-decoration:none;
+      color:#63738c;
+      font-weight:700;
+      font-size:1rem;
+    }
+
+    .footer{
+      background:#eef1f7;
+      padding:32px 24px 42px;
+      margin-top:auto;
+    }
+
+    .footer-inner{
+      width:min(100%, 1320px);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+      color:#63738c;
+      font-size:.92rem;
+    }
+
+    .footer-links{
+      display:flex;
+      gap:26px;
+      flex-wrap:wrap;
+    }
+
+    .footer-links a{
+      text-decoration:none;
+      color:#63738c;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.82rem;
+    }
+
+    .toast-stack{
+      position:fixed;
+      top:18px;
+      right:18px;
+      z-index:60;
+      width:min(360px, calc(100vw - 24px));
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .toast{
+      position:relative;
+      overflow:hidden;
+      background:#fff;
+      border:1px solid #ebe3d5;
+      border-radius:18px;
+      box-shadow:0 20px 40px rgba(17,28,43,.10);
+      padding:16px 18px 18px;
+    }
+
+    .toast__title{ font-weight:900; margin-bottom:4px; }
+    .toast__text{ color:#6d7a8e; line-height:1.6; font-size:.95rem; }
+    .toast__bar{
+      position:absolute;
+      left:0;
+      bottom:0;
+      height:4px;
+      width:100%;
+      transform-origin:left center;
+      animation:toastTimer linear forwards;
+    }
+
+    .toast--success .toast__bar{ background:#1ea672; }
+    .toast--error .toast__bar{ background:#d64545; }
+    .toast--info .toast__bar{ background:#f0a51f; }
+
+    @keyframes toastTimer{
+      from{ transform:scaleX(1); }
+      to{ transform:scaleX(0); }
+    }
+
+    @media (max-width: 900px){
+      .hero h1{ font-size:3.35rem; }
+    }
+
+    @media (max-width: 640px){
+      .topbar{ padding:22px 20px; }
+      .page{ padding:24px 16px 46px; }
+      .hero h1{ font-size:2.95rem; }
+      .otp-card{ padding:26px 18px; border-radius:28px; margin-top:32px; }
+      .otp-grid{ gap:10px; }
+      .otp-digit{ height:88px; border-radius:24px; font-size:1.65rem; }
+      .otp-meta{ font-size:.94rem; }
+      .footer-inner{ flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <i class="fa-solid fa-bars"></i>
+      <span>Umbrella Admin</span>
+    </div>
+    <button class="theme-btn" type="button" aria-label="Toggle theme">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-badge">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Security Protocol</span>
+      </div>
+      <h1>Verify<br>Authentication</h1>
+      <p>Enter the 6-digit code sent to your admin email to complete secure access.</p>
+    </section>
+
+    <section class="otp-card">
+      <form id="adminOtpForm" class="otp-form" novalidate>
+        <div class="otp-grid">
+          <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" placeholder="•">
+          <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" placeholder="•">
+          <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" placeholder="•">
+          <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" placeholder="•">
+          <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" placeholder="•">
+          <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" placeholder="•">
+        </div>
+
+        <button class="primary-btn" id="adminOtpVerifyBtn" type="submit">
+          <span class="btn-text">Verify & Proceed</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+        <div class="otp-meta">
+          <span id="adminOtpTimer">Expires in 15:00</span>
+          <button type="button" id="adminOtpResendBtn">Resend Code</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="/admin-signin/">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Go Back</span>
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2024 Umbrella Care Connect. All Rights Reserved.</span>
+      <div class="footer-links">
+        <a href="#">Help Center</a>
+        <a href="#">Privacy Protocol</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+   <script src="/assets/js/admin-login.js"></script>
+</body>
+</html>

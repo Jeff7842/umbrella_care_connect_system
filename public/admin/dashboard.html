@@ -1,0 +1,2630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella Admin · Donor Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+  <script src="../assets/js/navbar.js" type="text/javascript" defer></script>
+  <script src="../assets/js/sidebar.js" type="text/javascript" defer></script>
+  <link rel="stylesheet" href="assets/css/dashboard.css"/>
+</head>
+<body class="light-mode">
+<div class="admin-wrapper">
+  <sidebar-component></sidebar-component>
+
+  <div class="admin-main">
+
+    <navbar-component></navbar-component>
+
+    <section class="app-page active" data-page="analytics">
+      <div class="page-header-card mb-2">
+        <div>
+          <div class="panel-title mb-1"><i class="bi bi-bar-chart-line"></i> Analytics overview</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label"><i class="bi bi-people me-1"></i>Visitors</div><div class="stat-value">12.9K</div><span class="stat-change">+8% vs Oct</span></div>
+        <div class="stat-card"><div class="stat-label">Revenue (KES)</div><div class="stat-value">212.9K</div><span class="stat-change">▲12%</span></div>
+        <div class="stat-card"><div class="stat-label">Engagement</div><div class="stat-value">65%</div><span class="stat-change">active donors</span></div>
+        <div class="stat-card"><div class="stat-label">Avg. session</div><div class="stat-value">1m 45s</div><span class="stat-change">↑ 11s</span></div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-calendar-range"></i> Monthly digest</div>
+          <div class="month-item"><span class="month-name">October</span> <span class="month-detail">Visitors: 12.9K • Lorem Ipsum</span></div>
+          <div class="month-item"><span class="month-name">November</span> <span class="month-detail">Visitors: 65% ↑ • 1m 45s</span></div>
+          <div class="month-item"><span class="month-name">December</span> <span class="month-detail">230 sold out • 2 Refunded • 1500 Stock</span></div>
+          <div class="mt-3 small text-mute"><i class="bi bi-tag"></i> Dolor Sit Amet • On May 2015 • Sold out • Refunded 2 • 1500 Stock</div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-trophy"></i> Top products</div>
+          <ul class="product-list">
+            <li><span class="badge-need">1</span> Lorem Ipsum dolor</li>
+            <li><span class="badge-need">2</span> Lorem Ipsum amet</li>
+            <li><span class="badge-need">3</span> Lorem Ipsum consectetur</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-person-heart"></i> Top buyers</div>
+          <ul class="buyer-list">
+            <li><i class="bi bi-circle-fill me-2" style="color:var(--brand); font-size:0.6rem;"></i> 1. Lorem Ipsum</li>
+            <li><i class="bi bi-circle-fill me-2" style="color:var(--brand); font-size:0.6rem;"></i> 2. Lorem Ipsum</li>
+            <li><i class="bi bi-circle-fill me-2" style="color:var(--brand); font-size:0.6rem;"></i> 3. Lorem Ipsum</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quick-row mt-2">
+        <div class="panel mb-0">
+          <div class="panel-title"><i class="bi bi-arrow-up-right-circle"></i> Overview shortcuts</div>
+          <div class="shortcut-grid">
+            <button class="overview-shortcut" data-go-page="reports"><i class="bi bi-file-earmark-text"></i><span>Open reports page</span></button>
+            <button class="overview-shortcut" data-go-page="messages"><i class="bi bi-chat-dots"></i><span>Open messages page</span></button>
+            <button class="overview-shortcut" data-go-page="volunteers"><i class="bi bi-people"></i><span>Open volunteers page</span></button>
+            <button class="overview-shortcut" data-go-page="stock"><i class="bi bi-boxes"></i><span>Open stock page</span></button>
+          </div>
+        </div>
+        <div class="panel mb-0">
+          <div class="panel-title"><i class="bi bi-bell"></i> Notifications</div>
+          <ul class="notification-list">
+            <li><i class="bi bi-circle-fill text-success" style="font-size:0.5rem;"></i> Done · 2 new donations</li>
+            <li><i class="bi bi-circle-fill text-warning"></i> Pending · food need</li>
+            <li><i class="bi bi-circle-fill text-secondary"></i> Not Done · volunteer duty</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-page" data-page="dashboard">
+      <div class="page-header-card dashboard-home-header-card">
+        <div class="dashboard-home-hero">
+          <div class="dashboard-home-hero-copy">
+            <div class="panel-title mb-2"><i class="bi bi-speedometer2"></i> Dashboard Command Center</div>
+            <p class="text-mute mb-0 dashboard-home-hero-text">
+              A live operational summary of donations, needs, volunteers, stock, reports, and calendar execution for the day.
+            </p>
+          </div>
+
+          <div class="dashboard-home-hero-actions">
+            <button class="dashboard-ghost-btn" type="button" data-go-page="reports">
+              <i class="bi bi-bar-chart-line"></i> Open reports
+            </button>
+            <button class="btn-user-add" id="dashboardQuickScheduleBtn" type="button">
+              <i class="bi bi-plus-lg"></i> Add today's schedule
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-home-shell">
+        <div class="dashboard-summary-grid">
+          <article class="dashboard-kpi-card primary">
+            <div class="dashboard-kpi-top">
+              <span class="dashboard-kpi-icon"><i class="bi bi-basket2"></i></span>
+              <span class="dashboard-kpi-badge" id="dashboardNeedsTrend">Live</span>
+            </div>
+            <div class="dashboard-kpi-label">Active needs</div>
+            <div class="dashboard-kpi-value" id="dashboardActiveNeedsValue">0</div>
+            <div class="dashboard-kpi-meta">
+              <span id="dashboardNeedsMeta">0 total needs tracked</span>
+              <span id="dashboardNeedFulfillmentMeta">0% fulfilled</span>
+            </div>
+          </article>
+
+          <article class="dashboard-kpi-card success">
+            <div class="dashboard-kpi-top">
+              <span class="dashboard-kpi-icon"><i class="bi bi-cash-coin"></i></span>
+              <span class="dashboard-kpi-badge" id="dashboardDonationsTrend">This month</span>
+            </div>
+            <div class="dashboard-kpi-label">Donation intake</div>
+            <div class="dashboard-kpi-value" id="dashboardDonationValue">KES 0</div>
+            <div class="dashboard-kpi-meta">
+              <span id="dashboardDonationMeta">0 donors</span>
+              <span id="dashboardDonationGoalMeta">0% of goal</span>
+            </div>
+          </article>
+
+          <article class="dashboard-kpi-card info">
+            <div class="dashboard-kpi-top">
+              <span class="dashboard-kpi-icon"><i class="bi bi-people"></i></span>
+              <span class="dashboard-kpi-badge">Team</span>
+            </div>
+            <div class="dashboard-kpi-label">Active volunteers</div>
+            <div class="dashboard-kpi-value" id="dashboardVolunteerValue">0</div>
+            <div class="dashboard-kpi-meta">
+              <span id="dashboardVolunteerMeta">0 volunteer records</span>
+              <span id="dashboardVolunteerSignupMeta">0 signups total</span>
+            </div>
+          </article>
+
+          <article class="dashboard-kpi-card warning">
+            <div class="dashboard-kpi-top">
+              <span class="dashboard-kpi-icon"><i class="bi bi-calendar3"></i></span>
+              <span class="dashboard-kpi-badge" id="dashboardTodayLabel">Today</span>
+            </div>
+            <div class="dashboard-kpi-label">Today's schedule</div>
+            <div class="dashboard-kpi-value" id="dashboardTodayEventsValue">0</div>
+            <div class="dashboard-kpi-meta">
+              <span id="dashboardUpcomingMeta">No upcoming events</span>
+              <span id="dashboardCurrentDateText">--</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="dashboard-home-main-grid">
+          <div class="dashboard-home-left-col">
+            <section class="panel dashboard-insight-panel dashboard-chart-panel">
+              <div class="dashboard-panel-head">
+                <div>
+                  <div class="panel-title mb-2"><i class="bi bi-graph-up-arrow"></i> Weekly operational pulse</div>
+                  <p class="text-mute mb-0">At-a-glance movement across donations, needs, volunteer effort, and schedule load.</p>
+                </div>
+                <div class="dashboard-inline-pill" id="dashboardWeekSummary">Live summary</div>
+              </div>
+
+              <div class="dashboard-performance-grid">
+                <div class="dashboard-performance-metrics">
+                  <div class="dashboard-performance-card">
+                    <span>Needs fulfillment</span>
+                    <strong id="dashboardFulfillmentScore">0%</strong>
+                    <small id="dashboardFulfillmentCaption">Waiting for live data</small>
+                  </div>
+                  <div class="dashboard-performance-card">
+                    <span>Donor momentum</span>
+                    <strong id="dashboardDonorScore">0%</strong>
+                    <small id="dashboardDonorCaption">Waiting for live data</small>
+                  </div>
+                  <div class="dashboard-performance-card">
+                    <span>Volunteer coverage</span>
+                    <strong id="dashboardVolunteerScore">0%</strong>
+                    <small id="dashboardVolunteerCaption">Waiting for live data</small>
+                  </div>
+                </div>
+
+                <div class="dashboard-bars-card">
+                  <div class="dashboard-bars-head">
+                    <h4>Execution mix</h4>
+                    <span class="text-mute">Last 7 days</span>
+                  </div>
+                  <div class="dashboard-bars-legend">
+                    <span><i class="bi bi-circle-fill"></i> Needs</span>
+                    <span><i class="bi bi-circle-fill"></i> Donations</span>
+                    <span><i class="bi bi-circle-fill"></i> Volunteers</span>
+                  </div>
+                  <div class="dashboard-week-bars" id="dashboardWeekBars"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="dashboard-shortcuts-grid">
+              <button class="dashboard-shortcut-card" type="button" data-go-page="needs">
+                <span class="dashboard-shortcut-icon"><i class="bi bi-basket2"></i></span>
+                <div>
+                  <strong>Needs</strong>
+                  <p>Review urgent requests, fulfillment status, and edit posted needs.</p>
+                </div>
+              </button>
+
+              <button class="dashboard-shortcut-card" type="button" data-go-page="donations">
+                <span class="dashboard-shortcut-icon"><i class="bi bi-cash-stack"></i></span>
+                <div>
+                  <strong>Donations</strong>
+                  <p>Track donor activity, payments, favorites, and conversion flow.</p>
+                </div>
+              </button>
+
+              <button class="dashboard-shortcut-card" type="button" data-go-page="volunteers">
+                <span class="dashboard-shortcut-icon"><i class="bi bi-people-fill"></i></span>
+                <div>
+                  <strong>Volunteers</strong>
+                  <p>View signups, attendance strength, and deployment readiness.</p>
+                </div>
+              </button>
+
+              <button class="dashboard-shortcut-card" type="button" data-go-page="calendar">
+                <span class="dashboard-shortcut-icon"><i class="bi bi-calendar-week"></i></span>
+                <div>
+                  <strong>Calendar</strong>
+                  <p>Check upcoming schedule, move events, and plan day execution.</p>
+                </div>
+              </button>
+
+              <button class="dashboard-shortcut-card" type="button" data-go-page="stock">
+                <span class="dashboard-shortcut-icon"><i class="bi bi-box-seam"></i></span>
+                <div>
+                  <strong>Stock</strong>
+                  <p>Watch item levels, recent transactions, and low-stock pressure.</p>
+                </div>
+              </button>
+
+              <button class="dashboard-shortcut-card" type="button" data-go-page="user-management">
+                <span class="dashboard-shortcut-icon"><i class="bi bi-person-gear"></i></span>
+                <div>
+                  <strong>Users</strong>
+                  <p>Manage roles, account health, onboarding, and access control.</p>
+                </div>
+              </button>
+            </section>
+          </div>
+
+          <aside class="dashboard-home-right-col">
+            <section class="panel dashboard-insight-panel dashboard-schedule-panel">
+              <div class="dashboard-panel-head compact">
+                <div>
+                  <div class="panel-title mb-2"><i class="bi bi-clock-history"></i> Today's schedule</div>
+                  <p class="text-mute mb-0">Priority agenda and next execution block.</p>
+                </div>
+                <button class="dashboard-link-btn" type="button" data-go-page="calendar">Full calendar</button>
+              </div>
+
+              <div class="dashboard-current-day-chip" id="dashboardCurrentDayChip">Loading date...</div>
+              <div class="dashboard-schedule-list" id="dashboardTodayScheduleList"></div>
+            </section>
+
+            <section class="panel dashboard-insight-panel dashboard-quick-actions-panel">
+              <div class="dashboard-panel-head compact">
+                <div>
+                  <div class="panel-title mb-2"><i class="bi bi-lightning-charge"></i> Quick actions</div>
+                  <p class="text-mute mb-0">Fast operational shortcuts for daily admin work.</p>
+                </div>
+              </div>
+
+              <div class="dashboard-action-stack">
+                <button class="dashboard-action-btn" type="button" id="dashboardActionAddEvent">
+                  <i class="bi bi-calendar-plus"></i>
+                  <span>Add a calendar event</span>
+                </button>
+                <button class="dashboard-action-btn" type="button" data-go-page="needs">
+                  <i class="bi bi-plus-square"></i>
+                  <span>Post or update a need</span>
+                </button>
+                <button class="dashboard-action-btn" type="button" data-go-page="donations">
+                  <i class="bi bi-wallet2"></i>
+                  <span>Review donation pipeline</span>
+                </button>
+                <button class="dashboard-action-btn" type="button" data-go-page="reports">
+                  <i class="bi bi-file-earmark-bar-graph"></i>
+                  <span>Generate performance report</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="panel dashboard-insight-panel dashboard-focus-panel">
+              <div class="dashboard-panel-head compact">
+                <div>
+                  <div class="panel-title mb-2"><i class="bi bi-stars"></i> Priority watch</div>
+                  <p class="text-mute mb-0">Closest deadlines and operational pressure points.</p>
+                </div>
+              </div>
+
+              <div class="dashboard-priority-list" id="dashboardPriorityList"></div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-page" data-page="messages">
+  <div class="page-header-card pt-0">
+    <div class="panel-title"><i class="bi bi-chat-dots"></i> Messages</div>
+  </div>
+
+  <div class="messages-layout">
+    <!-- LEFT PANEL -->
+    <div class="messages-sidebar-panel">
+      <div class="messages-sidebar-header">
+        <div class="messages-sidebar-title">
+          <i class="bi bi-chat-square-dots"></i>
+          <span>Message</span>
+        </div>
+
+        <button class="messages-filter-btn" type="button">
+          <span>Filter</span>
+          <i class="bi bi-funnel"></i>
+        </button>
+      </div>
+
+      <div class="messages-search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search here" id="messageSearchInput" />
+      </div>
+
+      <div class="messages-contact-list" id="messagesContactList">
+        <!-- Contact -->
+        <button
+          class="message-contact-item"
+          type="button"
+          data-chat="bessie"
+        >
+          <img src="https://i.pravatar.cc/56?img=32" alt="Bessie Cooper" />
+          <div class="message-contact-content">
+            <div class="message-contact-top">
+              <span class="message-contact-name">Bessie Cooper</span>
+              <span class="message-contact-time">2h ago</span>
+            </div>
+            <div class="message-contact-preview">
+              The passage experienced a surge in popularity during the...
+            </div>
+          </div>
+        </button>
+
+        <button
+          class="message-contact-item"
+          type="button"
+          data-chat="jacob"
+        >
+          <img src="https://i.pravatar.cc/56?img=15" alt="Jacob Jones" />
+          <div class="message-contact-content">
+            <div class="message-contact-top">
+              <span class="message-contact-name">Jacob Jones</span>
+              <span class="message-contact-time">Yesterday</span>
+            </div>
+            <div class="message-contact-preview">
+              Amet minim mollit non deserunt ullamco est sit aliqua.
+            </div>
+          </div>
+        </button>
+
+        <button
+          class="message-contact-item"
+          type="button"
+          data-chat="dianne"
+        >
+          <img src="https://i.pravatar.cc/56?img=21" alt="Dianne Russell" />
+          <div class="message-contact-content">
+            <div class="message-contact-top">
+              <span class="message-contact-name">Dianne Russell</span>
+              <span class="message-contact-time">Yesterday</span>
+            </div>
+            <div class="message-contact-preview">
+              The passage experienced a surge in readership again.
+            </div>
+          </div>
+        </button>
+
+        <button
+          class="message-contact-item"
+          type="button"
+          data-chat="jane"
+        >
+          <img src="https://i.pravatar.cc/56?img=47" alt="Jane Cooper" />
+          <div class="message-contact-content">
+            <div class="message-contact-top">
+              <span class="message-contact-name">Jane Cooper</span>
+              <span class="message-contact-time">3h ago</span>
+            </div>
+            <div class="message-contact-preview">
+              Ullamco est sit aliqua dolor do amet sint.
+            </div>
+          </div>
+        </button>
+
+        <button
+          class="message-contact-item"
+          type="button"
+          data-chat="annette"
+        >
+          <img src="https://i.pravatar.cc/56?img=48" alt="Annette Black" />
+          <div class="message-contact-content">
+            <div class="message-contact-top">
+              <span class="message-contact-name">Annette Black</span>
+              <span class="message-contact-time">4h ago</span>
+            </div>
+            <div class="message-contact-preview">
+              Dolor do amet sint. Velit officia consequat.
+            </div>
+          </div>
+        </button>
+
+        <button
+          class="message-contact-item"
+          type="button"
+          data-chat="courtney"
+        >
+          <img src="https://i.pravatar.cc/56?img=11" alt="Courtney Henry" />
+          <div class="message-contact-content">
+            <div class="message-contact-top">
+              <span class="message-contact-name">Courtney Henry</span>
+              <span class="message-contact-time">Yesterday</span>
+            </div>
+            <div class="message-contact-preview">
+              Amet minim mollit non deserunt ullamco est sit aliqua.
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="messages-chat-panel">
+      <!-- EMPTY STATE -->
+      <div class="messages-empty-state" id="messagesEmptyState">
+        <div class="messages-empty-icon">
+          <i class="bi bi-chat-square-heart"></i>
+        </div>
+        <h4>Select someone to start chatting</h4>
+        <p>Choose an account from the left panel to open the conversation.</p>
+      </div>
+
+      <!-- ACTIVE CHAT -->
+      <div class="messages-chat-shell is-hidden" id="messagesChatShell">
+        <div class="messages-chat-header">
+          <div class="messages-chat-user">
+            <img
+              src="https://i.pravatar.cc/56?img=32"
+              alt="Bessie Cooper"
+              id="activeChatAvatar"
+            />
+            <div>
+              <div class="messages-chat-user-name" id="activeChatName">
+                Bessie Cooper
+              </div>
+              <div class="messages-chat-user-status">
+                <span class="chat-online-dot"></span>
+                <span id="activeChatStatus">Online now</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="messages-chat-menu-btn" type="button">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+        </div>
+
+        <div class="messages-chat-body" id="messagesChatBody">
+          <div class="message-row incoming">
+            <img
+              class="message-avatar"
+              src="https://i.pravatar.cc/56?img=32"
+              alt="Bessie Cooper"
+            />
+            <div class="message-bubble-wrap">
+              <div class="message-bubble incoming-bubble">
+                Hi, what do you mean? consectetur adipiscing elit. Nibh morbi et
+                enim libero tellus tellus nec.
+              </div>
+              <div class="message-time">04:28 PM</div>
+            </div>
+          </div>
+
+          <div class="message-row outgoing">
+            <div class="message-bubble-wrap outgoing-wrap">
+              <div class="message-bubble outgoing-bubble">
+                I have always been amet consectetur adipiscing.
+              </div>
+            </div>
+          </div>
+
+          <div class="message-row outgoing">
+            <div class="message-bubble-wrap outgoing-wrap">
+              <div class="message-bubble outgoing-bubble">
+                Send me some sample please
+              </div>
+              <div class="message-time outgoing-time">Delivered</div>
+            </div>
+          </div>
+
+          <div class="message-row incoming">
+            <img
+              class="message-avatar"
+              src="https://i.pravatar.cc/56?img=32"
+              alt="Bessie Cooper"
+            />
+            <div class="message-bubble-wrap">
+              <div class="message-bubble incoming-bubble">
+                Here I attached some sample
+              </div>
+
+              <div class="message-attachment-grid">
+                <img src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=300&q=80" alt="Sample 1">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80" alt="Sample 2">
+                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=300&q=80" alt="Sample 3">
+              </div>
+
+              <div class="message-time">04:28 PM</div>
+            </div>
+          </div>
+
+          <div class="message-row outgoing">
+            <div class="message-bubble-wrap outgoing-wrap">
+              <div class="message-bubble outgoing-bubble">
+                Wow, that's nice places
+              </div>
+              <div class="message-time outgoing-time">Delivered</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="messages-chat-input-bar">
+          <button type="button" class="message-input-icon-btn">
+            <i class="bi bi-emoji-smile"></i>
+          </button>
+          <button type="button" class="message-input-icon-btn">
+            <i class="bi bi-paperclip"></i>
+          </button>
+          <button type="button" class="message-input-icon-btn">
+            <i class="bi bi-image"></i>
+          </button>
+
+          <input
+            type="text"
+            class="messages-text-input"
+            placeholder="Type your message here..."
+          />
+
+          <button type="button" class="message-send-btn">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <section class="app-page" data-page="reports">
+        <div class="page-header-card">
+        <div class="panel-title"><i class="bi bi-file-spreadsheet" style="color:var(--brand);"></i> Reports & analytics</div>
+      </div>
+      <div class="reports-section mt-10">
+        <div class="reports-header">
+          <h3><i class="bi bi-file-spreadsheet" style="color:var(--brand);"></i> Reports & analytics</h3>
+          <div class="dropdown-group">
+            <select class="dropdown-custom" id="reportType">
+              <option selected>Donations report</option>
+              <option>Volunteer & duties</option>
+              <option>Needs & fulfillment</option>
+              <option>Donor activeness</option>
+              <option>Stock / inventory</option>
+              <option>Financial summary</option>
+            </select>
+            <select class="dropdown-custom">
+              <option>Last 30 days</option>
+              <option>This quarter</option>
+              <option>Year to date</option>
+              <option>Custom range</option>
+            </select>
+            <button class="btn-generate" id="genReportBtn"><i class="bi bi-file-earmark-pdf me-2"></i>Generate</button>
+          </div>
+        </div>
+
+        <div class="report-cards" id="reportCards">
+          <div class="report-mini"><span class="title">Total Donations</span><span class="figure" id="stat1">486</span><span class="text-mute d-block">this month</span></div>
+          <div class="report-mini"><span class="title">Needs fulfilled</span><span class="figure" id="stat2">34</span><span class="text-mute d-block">of 52</span></div>
+          <div class="report-mini"><span class="title">Volunteer hrs</span><span class="figure" id="stat3">212</span><span class="text-mute d-block">this quarter</span></div>
+          <div class="report-mini"><span class="title">Active donors</span><span class="figure" id="stat4">142</span><span class="text-mute d-block">↑12%</span></div>
+          <div class="report-mini"><span class="title">Duty signups</span><span class="figure" id="stat5">29</span><span class="text-mute d-block">pending 7</span></div>
+        </div>
+
+        <div class="vol-activeness" id="detailedReportBlock">
+          <div><i class="bi bi-person-check fs-3 me-2"></i> <strong>Volunteer activeness (last 30d)</strong></div>
+          <div class="progress-tag"><i class="bi bi-calendar-week"></i> 18 active volunteers · 42 duties completed</div>
+          <div class="progress-tag"><i class="bi bi-graph-up-arrow"></i> 86% attendance rate</div>
+          <div class="ms-auto"><i class="bi bi-download"></i> export raw</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-page" data-page="user-management">
+  <div class="page-header-card">
+  <div class="user-toolbar-actions">
+    <div class="user-toolbar-text">
+      <div class="panel-title">
+        <i class="bi bi-people-fill"></i> User Management
+      </div>
+      <p class="text-mute mb-0">
+        Manage users, roles, status, account access, and operational actions.
+      </p>
+    </div>
+
+    <button class="btn-user-add" id="openAddUserBtn">
+      <i class="bi bi-plus-lg"></i> Add User
+    </button>
+  </div>
+</div>
+
+  <div class="user-mgmt-section">
+    <div class="user-mgmt-toolbar">
+      <div class="user-search-wrap">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          id="userSearchInput"
+          class="user-search-input"
+          placeholder="Search username, name, email, reg code..."
+        />
+      </div>
+
+      <div class="user-sort">
+        <select id="userSortBy" class="user-sort-select">
+          <option value="created_desc">Sort by</option>
+          <option value="created_desc">Newest first</option>
+          <option value="created_asc">Oldest first</option>
+          <option value="name_asc">Name A - Z</option>
+          <option value="name_desc">Name Z - A</option>
+          <option value="username_asc">Username A - Z</option>
+          <option value="role_asc">Role A - Z</option>
+          <option value="status_asc">Status A - Z</option>
+        </select>
+    </div>
+    </div>
+
+    <div class="user-table-card">
+      <div class="table-responsive">
+        <table class="table user-management-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width: 50px;">
+                <input type="checkbox" id="selectAllUsers" />
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="full_name">
+                  Name <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="username">
+                  Username <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="email">
+                  Email <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="reg_code">
+                  Reg Code <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="phone">
+                  Phone <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="role">
+                  Role <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="th-sort-btn" data-sort="status">
+                  Status <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th class="text-center">
+                <button class="th-sort-btn" data-sort="last_seen">
+                  Last Seen <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="userManagementTableBody"><!--id="userManagementTableBody"-->
+            <!--
+              DYNAMIC TABLE ROWS FROM DJANGO BACKEND GO HERE
+
+              DATABASE MANAGER NOTE:
+              Add a DB trigger/default logic for reg_code on the users table.
+              Expected format:
+              UCC1234/JA
+              where:
+              - UCC = fixed prefix
+              - 1234 = random 4 digits
+              - J = first letter of first_name in uppercase
+              - A = first letter of role in uppercase
+
+              Example:
+              John Doe, role=admin => UCC1234/JA
+            -->
+
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>
+                <div class="user-cell-profile">
+                  <img src="https://i.pravatar.cc/40?img=12" alt="John Doe" />
+                  <div>
+                    <div class="user-name">John Doe</div>
+                    <div class="user-subtext">System Administrator</div>
+                  </div>
+                </div>
+              </td>
+              <td>@johndoe</td>
+              <td>johndoe@company.com</td>
+              <td><span class="reg-code-badge">UCC1234/AJ</span></td>
+              <td>+254 712 345 678</td>
+              <td><span class="role-badge role-admin">Admin</span></td>
+              <td><span class="status-badge status-active">Active</span></td>
+              <td class="text-center">2 min ago</td>
+              <td>
+                <div class="action-btn-group">
+                  <button class="table-action-btn edit-btn" title="Edit User">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="table-action-btn freeze-btn" title="Freeze User">
+                    <i class="bi bi-snow"></i>
+                  </button>
+                  <button class="table-action-btn delete-btn" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>
+                <div class="user-cell-profile">
+                  <img src="https://i.pravatar.cc/40?img=32" alt="Mary Wanjiru" />
+                  <div>
+                    <div class="user-name">Mary Wanjiru</div>
+                    <div class="user-subtext">Executive Oversight</div>
+                  </div>
+                </div>
+              </td>
+              <td>@marywanjiru</td>
+              <td>mary@company.com</td>
+              <td><span class="reg-code-badge">UCC4821/DM</span></td>
+              <td>+254 701 123 456</td>
+              <td><span class="role-badge role-director">Director</span></td>
+              <td><span class="status-badge status-paused">Paused</span></td>
+              <td class="text-center">1 hr ago</td>
+              <td>
+                <div class="action-btn-group">
+                  <button class="table-action-btn edit-btn" title="Edit User">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="table-action-btn freeze-btn" title="Freeze User">
+                    <i class="bi bi-snow"></i>
+                  </button>
+                  <button class="table-action-btn delete-btn" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>
+                <div class="user-cell-profile">
+                  <img src="https://i.pravatar.cc/40?img=44" alt="Kevin Otieno" />
+                  <div>
+                    <div class="user-name">Kevin Otieno</div>
+                    <div class="user-subtext">Communications Desk</div>
+                  </div>
+                </div>
+              </td>
+              <td>@kevinotieno</td>
+              <td>kevin@company.com</td>
+              <td><span class="reg-code-badge">UCC9052/CK</span></td>
+              <td>+254 733 987 654</td>
+              <td><span class="role-badge role-communications">Communications</span></td>
+              <td><span class="status-badge status-terminated">Terminated</span></td>
+              <td class="text-center">3 days ago</td>
+              <td>
+                <div class="action-btn-group">
+                  <button class="table-action-btn edit-btn" title="Edit User">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="table-action-btn freeze-btn" title="Freeze User">
+                    <i class="bi bi-snow"></i>
+                  </button>
+                  <button class="table-action-btn delete-btn" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>
+                <div class="user-cell-profile">
+                  <img src="https://i.pravatar.cc/40?img=23" alt="Amina Yusuf" />
+                  <div>
+                    <div class="user-name">Amina Yusuf</div>
+                    <div class="user-subtext">Platform Oversight</div>
+                  </div>
+                </div>
+              </td>
+              <td>@aminayusuf</td>
+              <td>amina@company.com</td>
+              <td><span class="reg-code-badge">UCC6317/SA</span></td>
+              <td>+254 722 888 234</td>
+              <td><span class="role-badge role-super-admin">Super Admin</span></td>
+              <td><span class="status-badge status-active">Active</span></td>
+              <td class="text-center">Just now</td>
+              <td>
+                <div class="action-btn-group">
+                  <button class="table-action-btn edit-btn" title="Edit User">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="table-action-btn freeze-btn" title="Freeze User">
+                    <i class="bi bi-snow"></i>
+                  </button>
+                  <button class="table-action-btn delete-btn" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>
+                <div class="user-cell-profile">
+                  <img src="https://i.pravatar.cc/40?img=18" alt="Brian Kariuki" />
+                  <div>
+                    <div class="user-name">Brian Kariuki</div>
+                    <div class="user-subtext">Internal Audit</div>
+                  </div>
+                </div>
+              </td>
+              <td>@briankariuki</td>
+              <td>brian@company.com</td>
+              <td><span class="reg-code-badge">UCC4478/AB</span></td>
+              <td>+254 745 444 100</td>
+              <td><span class="role-badge role-auditor">Auditor</span></td>
+              <td><span class="status-badge status-paused">Paused</span></td>
+              <td class="text-center">4 hrs ago</td>
+              <td>
+                <div class="action-btn-group">
+                  <button class="table-action-btn edit-btn" title="Edit User">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="table-action-btn freeze-btn" title="Freeze User">
+                    <i class="bi bi-snow"></i>
+                  </button>
+                  <button class="table-action-btn delete-btn" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><input type="checkbox" class="row-check" /></td>
+              <td>
+                <div class="user-cell-profile">
+                  <img src="https://i.pravatar.cc/40?img=28" alt="Faith Njeri" />
+                  <div>
+                    <div class="user-name">Faith Njeri</div>
+                    <div class="user-subtext">Operations Staff</div>
+                  </div>
+                </div>
+              </td>
+              <td>@faithnjeri</td>
+              <td>faith@company.com</td>
+              <td><span class="reg-code-badge">UCC7712/SF</span></td>
+              <td>+254 700 221 900</td>
+              <td><span class="role-badge role-staff">Staff</span></td>
+              <td><span class="status-badge status-active">Active</span></td>
+              <td class="text-center">12 min ago</td>
+              <td>
+                <div class="action-btn-group">
+                  <button class="table-action-btn edit-btn" title="Edit User">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="table-action-btn freeze-btn" title="Freeze User">
+                    <i class="bi bi-snow"></i>
+                  </button>
+                  <button class="table-action-btn delete-btn" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="user-table-footer">
+        <div class="entries-count" id="userEntriesInfo">Showing 1 to 6 of 128 entries</div>
+
+        <div class="pagination-wrap" id="userPagination">
+  <button class="page-btn active">1</button>
+</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <section class="app-page" data-page="settings">
+  <div class="settings-page-shell">
+    <div class="settings-hero-card">
+      <div class="settings-cover"></div>
+
+      <div class="settings-hero-content">
+        <div class="settings-profile-block">
+          <div class="settings-avatar-wrap">
+            <img
+              id="settingsProfilePhoto"
+              src="https://i.pravatar.cc/140?img=12"
+              alt="Profile photo"
+              class="settings-avatar"
+            />
+          </div>
+
+          <div class="settings-hero-text">
+            <h2 id="settingsFullName">User Settings</h2>
+            <p id="settingsEmailHero" class="text-mute mb-1">user@email.com</p>
+            <div class="settings-mini-badges">
+              <span class="settings-mini-pill" id="settingsRoleHero">Role</span>
+              <span class="settings-mini-pill" id="settingsStatusHero">Status</span>
+              <span class="settings-mini-pill" id="settingsVerifiedHero">Verification</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="settings-outline-btn" type="button" id="refreshSettingsBtn">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+
+      <div class="settings-tab-nav">
+        <button class="settings-tab-btn active" data-settings-tab="profile">Profile</button>
+        <button class="settings-tab-btn" data-settings-tab="details">My details</button>
+        <button class="settings-tab-btn" data-settings-tab="password">Password</button>
+      </div>
+    </div>
+
+    <div class="settings-content-card">
+      <div id="settingsMessage" class="settings-message is-hidden"></div>
+
+      <!-- PROFILE TAB -->
+      <div class="settings-tab-panel active" data-settings-panel="profile">
+        <div class="settings-section-head">
+          <div>
+            <h3>Profile</h3>
+            <p class="text-mute mb-0">Update the public-facing account identity for this dashboard user.</p>
+          </div>
+        </div>
+
+        <form id="settingsProfileForm" class="settings-form-grid">
+          <input type="hidden" id="settingsUserId" />
+
+          <div class="settings-form-group full-span">
+            <label for="settingsProfilePhotoInput">Profile photo URL</label>
+            <input type="url" id="settingsProfilePhotoInput" class="form-control" placeholder="https://example.com/photo.jpg" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsFirstName">First name</label>
+            <input type="text" id="settingsFirstName" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsLastName">Last name</label>
+            <input type="text" id="settingsLastName" class="form-control" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsUsername">Username</label>
+            <input type="text" id="settingsUsername" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsRole">Role</label>
+            <select id="settingsRole" class="form-control">
+              <option value="admin">Admin</option>
+              <option value="donor">Donor</option>
+              <option value="volunteer">Volunteer</option>
+            </select>
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsStatus">Status</label>
+            <select id="settingsStatus" class="form-control">
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="terminated">Terminated</option>
+            </select>
+          </div>
+
+          <div class="settings-form-group settings-check-group">
+            <label class="settings-check-label">
+              <input type="checkbox" id="settingsVerified" />
+              <span>Verified account</span>
+            </label>
+          </div>
+
+          <div class="settings-actions full-span">
+            <button type="button" class="settings-outline-btn" id="resetProfileSettingsBtn">Reset</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-check2-circle"></i> Save profile
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- DETAILS TAB -->
+      <div class="settings-tab-panel" data-settings-panel="details">
+        <div class="settings-section-head">
+          <div>
+            <h3>My details</h3>
+            <p class="text-mute mb-0">Operational account details pulled from your user table.</p>
+          </div>
+        </div>
+
+        <form id="settingsDetailsForm" class="settings-form-grid">
+          <div class="settings-form-group">
+            <label for="settingsEmail">Email address</label>
+            <input type="email" id="settingsEmail" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsPhone">Phone number</label>
+            <input type="text" id="settingsPhone" class="form-control" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsRegCode">Registration code</label>
+            <input type="text" id="settingsRegCode" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsFullNameReadOnly">Full name</label>
+            <input type="text" id="settingsFullNameReadOnly" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsCreatedAt">Created at</label>
+            <input type="text" id="settingsCreatedAt" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsLastSeen">Last seen</label>
+            <input type="text" id="settingsLastSeen" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group full-span">
+            <label for="settingsUpdatedAt">Last updated</label>
+            <input type="text" id="settingsUpdatedAt" class="form-control" disabled />
+          </div>
+
+          <div class="settings-actions full-span">
+            <button type="button" class="settings-outline-btn" id="resetDetailsSettingsBtn">Reset</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-save2"></i> Save details
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PASSWORD TAB -->
+      <div class="settings-tab-panel" data-settings-panel="password">
+        <div class="settings-section-head">
+          <div>
+            <h3>Password</h3>
+            <p class="text-mute mb-0">
+              Change the password for this account. This needs a dedicated backend endpoint.
+            </p>
+          </div>
+        </div>
+
+        <form id="settingsPasswordForm" class="settings-password-form">
+          <div class="settings-form-group">
+            <label for="settingsCurrentPassword">Current password</label>
+            <input type="password" id="settingsCurrentPassword" class="form-control" placeholder="Enter current password" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsNewPassword">New password</label>
+            <input type="password" id="settingsNewPassword" class="form-control" placeholder="Enter new password" required />
+            <small class="text-mute">Use at least 8 characters.</small>
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsConfirmPassword">Confirm new password</label>
+            <input type="password" id="settingsConfirmPassword" class="form-control" placeholder="Confirm new password" required />
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" class="settings-outline-btn" id="resetPasswordSettingsBtn">Cancel</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-shield-lock"></i> Update password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <section class="app-page" data-page="privacy">
+      <div class="page-header-card">
+        <div class="panel-title"><i class="bi bi-shield-lock"></i> Privacy</div>
+        <p class="text-mute mb-0">Privacy and security controls page.</p>
+      </div>
+    </section>
+
+    <section class="app-page" data-page="calendar">
+  <div class="page-header-card calendar-page-header">
+    <div class="calendar-header-shell">
+      <div>
+        <div class="panel-title"><i class="bi bi-calendar3"></i> Calendar</div>
+        <p class="text-mute mb-0">Manage schedules, drag events to reschedule, and switch between day, month and year views.</p>
+      </div>
+
+      <div class="calendar-header-actions">
+        <button class="calendar-toolbar-btn" id="calendarTodayBtn" type="button">Today</button>
+
+        <div class="calendar-nav-group">
+          <button class="calendar-icon-btn" id="calendarPrevBtn" type="button" aria-label="Previous">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="calendar-icon-btn" id="calendarNextBtn" type="button" aria-label="Next">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="calendar-view-switch" id="calendarViewSwitch">
+          <button class="calendar-view-btn" data-view="day" type="button">Day</button>
+          <button class="calendar-view-btn active" data-view="month" type="button">Month</button>
+          <button class="calendar-view-btn" data-view="year" type="button">Year</button>
+        </div>
+
+        <button class="btn-user-add" id="openCalendarEventModal" type="button">
+          <i class="bi bi-plus-lg"></i> Add Event
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="calendar-layout-shell">
+    <aside class="calendar-sidebar-card">
+      <div class="calendar-sidebar-top">
+        <div class="calendar-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="calendarSearchInput" placeholder="Search event...">
+        </div>
+
+        <div class="calendar-mini-card">
+          <div class="calendar-mini-header">
+            <button class="calendar-mini-nav" id="calendarMiniPrev" type="button"><i class="bi bi-chevron-left"></i></button>
+            <div class="calendar-mini-title" id="calendarMiniTitle">August 2025</div>
+            <button class="calendar-mini-nav" id="calendarMiniNext" type="button"><i class="bi bi-chevron-right"></i></button>
+          </div>
+          <div class="calendar-mini-weekdays">
+            <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+          </div>
+          <div class="calendar-mini-grid" id="calendarMiniGrid"></div>
+        </div>
+      </div>
+
+      <div class="calendar-sidebar-bottom">
+        <div class="calendar-sidebar-section-title">My calendars</div>
+        <div class="calendar-color-legend" id="calendarLegendList"></div>
+      </div>
+    </aside>
+
+    <div class="calendar-main-card">
+      <div class="calendar-main-head">
+        <h3 id="calendarCurrentLabel">August 2025</h3>
+        <div class="calendar-head-summary text-mute" id="calendarSelectionSummary">Month schedule overview</div>
+      </div>
+
+      <div class="calendar-board" id="calendarBoard"></div>
+    </div>
+  </div>
+
+  <div class="calendar-modal-backdrop is-hidden" id="calendarEventModalBackdrop">
+    <div class="calendar-event-modal">
+      <div class="calendar-event-modal-header">
+        <div>
+          <h4 id="calendarModalTitle">New event</h4>
+          <p class="text-mute mb-0">Create or edit a schedule item.</p>
+        </div>
+        <button class="calendar-icon-btn" id="closeCalendarEventModal" type="button">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form id="calendarEventForm" class="calendar-event-form">
+        <input type="hidden" id="calendarEventId">
+
+        <label>
+          <span>Event name</span>
+          <input type="text" id="calendarEventTitle" required>
+        </label>
+
+        <div class="calendar-form-grid two-col">
+          <label>
+            <span>Start date</span>
+            <input type="date" id="calendarStartDate" required>
+          </label>
+          <label>
+            <span>End date</span>
+            <input type="date" id="calendarEndDate" required>
+          </label>
+        </div>
+
+        <div class="calendar-form-grid two-col" id="calendarTimeFields">
+          <label>
+            <span>Start time</span>
+            <input type="time" id="calendarStartTime">
+          </label>
+          <label>
+            <span>End time</span>
+            <input type="time" id="calendarEndTime">
+          </label>
+        </div>
+
+        <label class="calendar-check-row">
+          <input type="checkbox" id="calendarAllDay">
+          <span>All day</span>
+        </label>
+
+        <div class="calendar-form-grid two-col">
+          <label>
+            <span>Color</span>
+            <select id="calendarColor">
+              <option value="#2563eb">Blue</option>
+              <option value="#22c55e">Green</option>
+              <option value="#a855f7">Purple</option>
+              <option value="#ec4899">Pink</option>
+              <option value="#f59e0b">Amber</option>
+              <option value="#ef4444">Red</option>
+              <option value="#14b8a6">Teal</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select id="calendarStatus">
+              <option value="scheduled">Scheduled</option>
+              <option value="tentative">Tentative</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          <span>Description</span>
+          <textarea id="calendarDescription" rows="4" placeholder="Write event details..."></textarea>
+        </label>
+
+        <div class="calendar-modal-actions">
+          <button class="calendar-toolbar-btn danger-btn" id="deleteCalendarEventBtn" type="button">Delete</button>
+          <div class="calendar-modal-actions-right">
+            <button class="calendar-toolbar-btn" id="cancelCalendarEventBtn" type="button">Cancel</button>
+            <button class="btn-user-add" id="saveCalendarEventBtn" type="submit">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+
+    <section class="app-page" data-page="needs">
+  <div class="page-header-card needs-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-basket2"></i> Needs
+        </div>
+        <p class="text-mute mb-0">
+          Manage posted needs in card and list view, edit live details, update cover image, and close fulfilled requests.
+        </p>
+      </div>
+
+      <button class="needs-tool-btn needs-add-btn" id="openNeedModalBtn" type="button">
+        <i class="bi bi-plus-lg"></i> Add Need
+      </button>
+    </div>
+  </div>
+
+  <div id="needMessage" style="display:none; margin: 12px 0; padding: 10px; border-radius: 8px;"></div>
+
+  <div class="needs-dashboard">
+    <div class="needs-table-shell">
+      <div class="needs-toolbar-top">
+        <div class="needs-tabs" id="needsTabs">
+          <button class="needs-tab active" data-needs-view="cards">Cards</button>
+          <button class="needs-tab" data-needs-view="list">List</button>
+        </div>
+
+        <div class="needs-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="needSearchInput" placeholder="Search needs by title">
+        </div>
+      </div>
+
+      <div class="needs-toolbar-bottom">
+        <div class="needs-left-tools">
+          <select id="needStatusFilter" class="needs-tool-select">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="partially_funded">Partially Funded</option>
+            <option value="fulfilled">Fulfilled</option>
+            <option value="expired">Expired</option>
+            <option value="closed">Closed</option>
+          </select>
+
+          <select id="needTypeFilter" class="needs-tool-select">
+            <option value="">All Types</option>
+            <option value="cash">Cash</option>
+            <option value="in_kind">In Kind</option>
+          </select>
+
+          <button class="needs-tool-btn" id="needRefreshBtn" type="button">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+
+        <div class="needs-right-tools">
+          <button class="needs-tool-btn" id="needsExportBtn" type="button">
+            <i class="bi bi-download"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="needs-content-switcher">
+        <!-- CARDS VIEW -->
+        <div class="needs-cards-view active" id="needsCardsView">
+          <div class="needs-cards-grid" id="needsCardsGrid">
+            <div class="text-muted">Loading needs...</div>
+          </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div class="needs-list-view" id="needsListView">
+          <div class="needs-table-scroll">
+            <table class="table needs-table align-middle mb-0" id="needsTable">
+              <thead>
+                <tr>
+                  <th style="width: 52px;">
+                    <input type="checkbox" id="selectAllNeeds">
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="title">
+                      Need <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="need_type">
+                      Type <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="quantity_required">
+                      Amount Needed <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="quantity_fulfilled">
+                      Amount Received <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="status">
+                      Status <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="needs-th-btn" data-sort-key="deadline">
+                      Deadline <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                  </th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="needsTableBody">
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">Loading needs...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="needs-table-footer">
+  <div class="needs-entries-count" id="needEntriesInfo">Showing 0 to 0 of 0 entries</div>
+  <div class="needs-pagination" id="needPagination">
+    <button class="needs-page-btn active">1</button>
+  </div>
+</div>
+    </div>
+  </div>
+
+  <!-- NEED MODAL -->
+  <div class="needs-modal-overlay" id="needModalOverlay">
+    <div class="needs-modal-card">
+      <div class="needs-modal-header">
+        <div>
+          <h3 id="needModalTitle">Add Need</h3>
+          <p class="text-mute mb-0">Create or update a need record.</p>
+        </div>
+        <button type="button" class="needs-modal-close" id="closeNeedModalBtn">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form id="needForm" class="needs-modal-form">
+        <input type="hidden" id="needId">
+
+        <div class="needs-form-grid">
+          <div class="needs-form-group full-span">
+            <label for="needTitle">Need Title</label>
+            <input type="text" id="needTitle" class="form-control" required>
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needType">Need Type</label>
+            <select id="needType" class="form-control">
+              <option value="in_kind">In Kind</option>
+              <option value="cash">Cash</option>
+            </select>
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needStatus">Status</label>
+            <select id="needStatus" class="form-control">
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="partially_funded">Partially Funded</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="expired">Expired</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needQuantityRequired">Amount Needed</label>
+            <input type="number" id="needQuantityRequired" class="form-control" required min="0" step="0.01">
+          </div>
+
+          <div class="needs-form-group" style="display: none;">
+            <label for="needQuantityFulfilled">Amount Received</label>
+            <input type="number" id="needQuantityFulfilled" class="form-control" min="0" step="0.01" value="0">
+          </div>
+
+ <div class="needs-form-group">
+            <label for="needImageUrl">Cover Image URL</label>
+            <input type="url" id="needImageUrl" class="form-control" placeholder="https://...">
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needDeadline">Deadline</label>
+            <input type="date" id="needDeadline" class="form-control">
+          </div>
+
+          <div class="needs-form-group">
+            <label for="needUnit">Unit</label>
+            <input type="text" id="needUnit" class="form-control" placeholder="e.g. beds, items, KES">
+          </div>
+
+         
+
+          <div class="needs-form-group full-span">
+            <label for="needDescription">Description</label>
+            <textarea id="needDescription" class="form-control" rows="4"></textarea>
+          </div>
+        </div>
+
+        <div class="needs-modal-actions">
+          <button type="button" id="resetNeedBtn" class="needs-tool-btn">Reset</button>
+          <button type="submit" id="needSubmitBtn" class="needs-tool-btn needs-save-btn">
+            Save Need
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+    <section class="app-page" data-page="donations">
+      <div class="page-header-card donation-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-cash-coin"></i> Donations
+        </div>
+        <p class="text-mute mb-0">Track donors, payment methods, donation targets, favorites, exports and column controls.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="donation-dashboard">
+    <div class="donation-stat-grid">
+      <div class="donation-stat-card">
+        <div class="donation-stat-top">
+          <span class="donation-stat-icon purple"><i class="bi bi-wallet2"></i></span>
+          <button class="donation-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="donation-stat-value">$560.24</div>
+        <div class="donation-stat-label">In this month <span class="mini-growth">+24%</span></div>
+      </div>
+
+      <div class="donation-stat-card">
+        <div class="donation-stat-top">
+          <span class="donation-stat-icon gold"><i class="bi bi-trophy"></i></span>
+          <button class="donation-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="donation-stat-value">75%</div>
+        <div class="donation-stat-label">Active donation goal</div>
+      </div>
+
+      <div class="donation-stat-card">
+        <div class="donation-stat-top">
+          <span class="donation-stat-icon pink"><i class="bi bi-people"></i></span>
+          <button class="donation-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="donation-stat-value">32</div>
+        <div class="donation-stat-label">Donors</div>
+      </div>
+
+      <div class="donation-stat-card">
+        <div class="donation-stat-top">
+          <span class="donation-stat-icon blue"><i class="bi bi-bank"></i></span>
+          <button class="donation-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="donation-stat-value">$7,230.24</div>
+        <div class="donation-stat-label">For all time</div>
+      </div>
+    </div>
+
+    <div class="donation-table-shell">
+      <div class="donation-toolbar-top">
+        <div class="donation-tabs" id="donationTabs">
+          <button class="donation-tab active" data-donation-tab="latest">Latest</button>
+          <button class="donation-tab" data-donation-tab="top">Top</button>
+          <button class="donation-tab" data-donation-tab="favorites">Favorites</button>
+        </div>
+
+        <div class="donation-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="donationSearchInput" placeholder="Search by name or email">
+        </div>
+      </div>
+
+      <div class="donation-toolbar-bottom">
+        <div class="donation-left-tools">
+          <button class="donation-tool-btn" id="donationSortBtn" type="button">
+            <i class="bi bi-arrow-down-up"></i> Sorting
+          </button>
+
+          <select id="donationStatusFilter" class="donation-tool-select">
+            <option value="all">Filter status</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+            <option value="cancled">Cancled</option>
+          </select>
+
+          <select id="donationMethodFilter" class="donation-tool-select">
+            <option value="all">Filter method</option>
+            <option value="mpesa">Mpesa</option>
+            <option value="paypal">PayPal</option>
+            <option value="credit card">Credit Card</option>
+          </select>
+
+          <select id="donationCountryFilter" class="donation-tool-select">
+            <option value="all">Filter country</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Uganda">Uganda</option>
+            <option value="Tanzania">Tanzania</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+          </select>
+        </div>
+
+        <div class="donation-right-tools">
+          <button class="donation-tool-btn" id="markFavoriteBtn" type="button">
+            <i class="bi bi-heart"></i> Add to favorite
+          </button>
+
+          <div class="donation-export-group">
+            <button class="donation-tool-btn" id="donationExportToggle" type="button">
+              <i class="bi bi-download"></i> Export
+            </button>
+            <div class="donation-export-menu is-hidden" id="donationExportMenu">
+              <button type="button" data-export-type="csv">Export CSV</button>
+              <button type="button" data-export-type="xls">Export XLS</button>
+            </div>
+          </div>
+
+          <div class="donation-columns-group">
+            <button class="donation-tool-btn" id="toggleDonationColumnEditor" type="button">
+              <i class="bi bi-pin-angle"></i> Edit columns
+            </button>
+
+            <div class="donation-column-editor is-hidden" id="donationColumnEditor">
+              <div class="donation-column-editor-title">Freeze columns</div>
+              <label><input type="checkbox" data-freeze-col="method"> Method</label>
+              <label><input type="checkbox" data-freeze-col="datetime"> Date &amp; Time</label>
+              <label><input type="checkbox" data-freeze-col="country"> Country</label>
+              <label><input type="checkbox" data-freeze-col="status"> Status</label>
+              <label><input type="checkbox" data-freeze-col="pledge"> Pledge</label>
+              <label><input type="checkbox" data-freeze-col="towards"> Donation Towards</label>
+              <label><input type="checkbox" data-freeze-col="comment"> Comment</label>
+              <button type="button" class="apply-column-btn" id="applyFrozenColumns">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="donation-table-scroll">
+        <table class="table donation-table align-middle mb-0" id="donationTable">
+          <thead>
+            <tr>
+              <th class="sticky-base sticky-order-col">
+                <input type="checkbox" id="selectAllDonations">
+              </th>
+              <th class="sticky-base sticky-donor-col" data-col-key="donor">
+                <button class="donation-th-btn" data-sort-key="name">Donor <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="email">
+                <button class="donation-th-btn" data-sort-key="email">Email <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="method">
+                <button class="donation-th-btn" data-sort-key="method">Method <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="datetime">
+                <button class="donation-th-btn" data-sort-key="datetime">Date &amp; Time <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="country">
+                <button class="donation-th-btn" data-sort-key="country">Country <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="pledge">
+                <button class="donation-th-btn" data-sort-key="pledge">Pledge <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="lifetime">
+                <button class="donation-th-btn" data-sort-key="lifetime">Amount <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="status">
+                <button class="donation-th-btn" data-sort-key="status">Status <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="towards">
+                <button class="donation-th-btn" data-sort-key="towards">Donation Towards <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="comment">
+                <button class="donation-th-btn" data-sort-key="comment">Comment <i class="bi bi-arrow-down-up"></i></button>
+              </th>
+              <th data-col-key="actions">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="donationTableBody">
+            <!--
+              DATABASE DEPARTMENT NOTE:
+              Create a trigger/default generator for the reference_code column.
+              Required format:
+              #UCCTE123I45G6
+
+              Rules:
+              - Must always start with #UCC
+              - Then four random uppercase letters shared in the early and middle segments i.e two before the int after #UCC and the rest in between the int
+              - Then six random integers mixed in the remaining positions
+              - Example format target: #UCCTE123I45G6
+
+              Store this in a dedicated reference_code column in the donations table.
+              Do not generate this in the frontend in production.
+            -->
+
+            <tr>
+              <td class="sticky-base sticky-order-col">
+                <input type="checkbox" class="donation-row-check">
+              </td>
+              <td class="sticky-base sticky-donor-col" data-col-key="donor">
+                <div class="donor-cell-wrap">
+                  <span class="favorite-front active"><i class="bi bi-heart-fill"></i></span>
+                  <img src="https://i.pravatar.cc/44?img=1" alt="Alige">
+                  <div>
+                    <div class="donor-name-line">1. Alige</div>
+                    <div class="donor-ref-line">#UCCTE123I45G6</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col-key="email">alg29@gmail.com</td>
+              <td data-col-key="method"><span class="method-pill method-mpesa">Mpesa</span></td>
+              <td data-col-key="datetime">12 Mar 2026, 09:14 AM</td>
+              <td data-col-key="country">Kenya</td>
+              <td data-col-key="pledge">$12/month</td>
+              <td data-col-key="lifetime">$150.00</td>
+              <td data-col-key="status"><span class="donation-status paid">Paid</span></td>
+              <td data-col-key="towards">New beds</td>
+              <td data-col-key="comment">Thanks for the good mood</td>
+              <td data-col-key="actions">
+                <div class="donation-actions">
+                  <button class="transparent-view-btn">View details</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="sticky-base sticky-order-col"><input type="checkbox" class="donation-row-check"></td>
+              <td class="sticky-base sticky-donor-col" data-col-key="donor">
+                <div class="donor-cell-wrap">
+                  <span class="favorite-front"><i class="bi bi-heart"></i></span>
+                  <img src="https://i.pravatar.cc/44?img=12" alt="Kiyotaka">
+                  <div>
+                    <div class="donor-name-line">2. Kiyotaka</div>
+                    <div class="donor-ref-line">#UCCRM847Q12L8</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col-key="email">kiot44421@gmail.com</td>
+              <td data-col-key="method"><span class="method-pill method-paypal">PayPal</span></td>
+              <td data-col-key="datetime">11 Mar 2026, 03:26 PM</td>
+              <td data-col-key="country">USA</td>
+              <td data-col-key="pledge">$15/month</td>
+              <td data-col-key="lifetime">$15.00</td>
+              <td data-col-key="status"><span class="donation-status pending">Pending</span></td>
+              <td data-col-key="towards">Food and clothes</td>
+              <td data-col-key="comment">Could you answer me onl</td>
+              <td data-col-key="actions"><div class="donation-actions"><button class="transparent-view-btn">View details</button></div></td>
+            </tr>
+
+            <tr>
+              <td class="sticky-base sticky-order-col"><input type="checkbox" class="donation-row-check"></td>
+              <td class="sticky-base sticky-donor-col" data-col-key="donor">
+                <div class="donor-cell-wrap">
+                  <span class="favorite-front active"><i class="bi bi-heart-fill"></i></span>
+                  <img src="https://i.pravatar.cc/44?img=23" alt="Elige2">
+                  <div>
+                    <div class="donor-name-line">3. Elige2</div>
+                    <div class="donor-ref-line">#UCCAB562T77M4</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col-key="email">eegge@gmail.com</td>
+              <td data-col-key="method"><span class="method-pill method-card">Credit Card</span></td>
+              <td data-col-key="datetime">10 Mar 2026, 05:42 PM</td>
+              <td data-col-key="country">UK</td>
+              <td data-col-key="pledge">$6/month</td>
+              <td data-col-key="lifetime">$10.00</td>
+              <td data-col-key="status"><span class="donation-status paid">Paid</span></td>
+              <td data-col-key="towards">Other</td>
+              <td data-col-key="comment">Hello! I want to say thanks</td>
+              <td data-col-key="actions"><div class="donation-actions"><button class="transparent-view-btn">View details</button></div></td>
+            </tr>
+
+            <tr>
+              <td class="sticky-base sticky-order-col"><input type="checkbox" class="donation-row-check"></td>
+              <td class="sticky-base sticky-donor-col" data-col-key="donor">
+                <div class="donor-cell-wrap">
+                  <span class="favorite-front"><i class="bi bi-heart"></i></span>
+                  <img src="https://i.pravatar.cc/44?img=34" alt="Panda">
+                  <div>
+                    <div class="donor-name-line">4. Panda</div>
+                    <div class="donor-ref-line">#UCCKD901H44R2</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col-key="email">pandamoo5@gmail.com</td>
+              <td data-col-key="method"><span class="method-pill method-mpesa">Mpesa</span></td>
+              <td data-col-key="datetime">09 Mar 2026, 08:01 AM</td>
+              <td data-col-key="country">Uganda</td>
+              <td data-col-key="pledge">$20/month</td>
+              <td data-col-key="lifetime">$32.00</td>
+              <td data-col-key="status"><span class="donation-status refunded">Refunded</span></td>
+              <td data-col-key="towards">Food and clothes</td>
+              <td data-col-key="comment">The last post is very good</td>
+              <td data-col-key="actions"><div class="donation-actions"><button class="transparent-view-btn">View details</button></div></td>
+            </tr>
+
+            <tr>
+              <td class="sticky-base sticky-order-col"><input type="checkbox" class="donation-row-check"></td>
+              <td class="sticky-base sticky-donor-col" data-col-key="donor">
+                <div class="donor-cell-wrap">
+                  <span class="favorite-front"><i class="bi bi-heart"></i></span>
+                  <img src="https://i.pravatar.cc/44?img=18" alt="Megood">
+                  <div>
+                    <div class="donor-name-line">5. Megood</div>
+                    <div class="donor-ref-line">#UCCQF210K93J1</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col-key="email">goodtome@gmail.com</td>
+              <td data-col-key="method"><span class="method-pill method-paypal">PayPal</span></td>
+              <td data-col-key="datetime">08 Mar 2026, 07:10 PM</td>
+              <td data-col-key="country">Tanzania</td>
+              <td data-col-key="pledge">-</td>
+              <td data-col-key="lifetime">$52.00</td>
+              <td data-col-key="status"><span class="donation-status failed">Failed</span></td>
+              <td data-col-key="towards">Other</td>
+              <td data-col-key="comment">Thank you for sharing the</td>
+              <td data-col-key="actions"><div class="donation-actions"><button class="transparent-view-btn">View details</button></div></td>
+            </tr>
+
+            <tr>
+              <td class="sticky-base sticky-order-col"><input type="checkbox" class="donation-row-check"></td>
+              <td class="sticky-base sticky-donor-col" data-col-key="donor">
+                <div class="donor-cell-wrap">
+                  <span class="favorite-front active"><i class="bi bi-heart-fill"></i></span>
+                  <img src="https://i.pravatar.cc/44?img=28" alt="Sunshine">
+                  <div>
+                    <div class="donor-name-line">6. Sunshine</div>
+                    <div class="donor-ref-line">#UCCLP761Z08H5</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col-key="email">sunandme21@gmail.com</td>
+              <td data-col-key="method"><span class="method-pill method-card">Credit Card</span></td>
+              <td data-col-key="datetime">07 Mar 2026, 11:48 AM</td>
+              <td data-col-key="country">Kenya</td>
+              <td data-col-key="pledge">$25/month</td>
+              <td data-col-key="lifetime">$44.00</td>
+              <td data-col-key="status"><span class="donation-status cancled">Cancled</span></td>
+              <td data-col-key="towards">School fees</td>
+              <td data-col-key="comment">Hi!</td>
+              <td data-col-key="actions"><div class="donation-actions"><button class="transparent-view-btn">View details</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="donation-table-footer">
+        <div class="donation-entries-count" id="donationEntriesInfo">Showing 1 to 6 of 86 entries</div>
+
+        <div class="donation-pagination" id="donationPagination">
+          <button class="donation-page-btn">Prev</button>
+          <button class="donation-page-btn active">1</button>
+          <button class="donation-page-btn">2</button>
+          <button class="donation-page-btn">3</button>
+          <button class="donation-page-btn dots">...</button>
+          <button class="donation-page-btn">8</button>
+          <button class="donation-page-btn">9</button>
+          <button class="donation-page-btn">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    </section>
+
+    <section class="app-page" data-page="volunteers">
+  <div class="page-header-card volunteer-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-people"></i> Volunteers
+        </div>
+        <p class="text-mute mb-0">
+          Manage volunteer records from the admin dashboard using live backend data.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="volunteer-dashboard">
+    <div class="volunteer-table-shell">
+      <div class="volunteer-toolbar-top">
+        <div class="volunteer-tabs" id="volunteerTabs">
+          <button class="volunteer-tab active" data-volunteer-tab="all">All</button>
+          <button class="volunteer-tab" data-volunteer-tab="active">Active</button>
+          <button class="volunteer-tab" data-volunteer-tab="inactive">Inactive</button>
+        </div>
+
+        <div class="volunteer-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="volunteerSearchInput" placeholder="Search by name, email, phone or skills">
+        </div>
+      </div>
+
+      <div class="volunteer-toolbar-bottom">
+        <div class="volunteer-left-tools">
+          <button class="volunteer-tool-btn" id="volunteerSortBtn" type="button">
+            <i class="bi bi-arrow-down-up"></i> Sorting
+          </button>
+
+          <select id="volunteerStatusFilter" class="volunteer-tool-select">
+            <option value="all">Filter status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+
+          <select id="volunteerSignupFilter" class="volunteer-tool-select">
+            <option value="all">Filter signups</option>
+            <option value="0">No signups</option>
+            <option value="1-5">1 - 5 signups</option>
+            <option value="6-10">6 - 10 signups</option>
+            <option value="10+">10+ signups</option>
+          </select>
+        </div>
+
+        <div class="volunteer-right-tools">
+          <button class="volunteer-tool-btn" id="volunteerExportBtn" type="button">
+            <i class="bi bi-download"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="volunteer-table-scroll">
+        <table class="table volunteer-table align-middle mb-0" id="volunteerTable">
+          <thead>
+            <tr>
+              <th class="sticky-base sticky-order-col">
+                <input type="checkbox" id="selectAllVolunteers">
+              </th>
+              <th class="sticky-base sticky-volunteer-col" data-col-key="volunteer">
+                <button class="volunteer-th-btn" data-sort-key="name">
+                  Volunteer <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="email">
+                <button class="volunteer-th-btn" data-sort-key="email">
+                  Email <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="phone">
+                <button class="volunteer-th-btn" data-sort-key="phone">
+                  Phone <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="skills">
+                <button class="volunteer-th-btn" data-sort-key="skills">
+                  Skills <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="availability">
+                <button class="volunteer-th-btn" data-sort-key="availability">
+                  Availability <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="signups_count">
+                <button class="volunteer-th-btn" data-sort-key="signups_count">
+                  Signups <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="status">
+                <button class="volunteer-th-btn" data-sort-key="is_active">
+                  Status <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="created_at">
+                <button class="volunteer-th-btn" data-sort-key="created_at">
+                  Joined <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th data-col-key="actions">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="volunteerTableBody">
+            <tr>
+              <td colspan="10" class="text-center py-4 text-muted">Loading volunteers...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="volunteer-table-footer">
+        <div class="volunteer-entries-count" id="volunteerEntriesInfo">Showing 0 to 0 of 0 entries</div>
+
+        <div class="volunteer-pagination" id="volunteerPagination">
+          <button class="volunteer-page-btn active">1</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <section class="app-page" data-page="stock">
+  <div class="page-header-card stock-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="panel-title mb-1">
+          <i class="bi bi-box-seam"></i> Stock
+        </div>
+        <p class="text-mute mb-0">
+          Monitor received inventory, stock levels, activity state and recent stock movement.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stock-dashboard">
+    <div class="stock-stat-grid">
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon amber"><i class="bi bi-box-seam"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockTotalItems">0</div>
+        <div class="stock-stat-label">Total stock items</div>
+      </div>
+
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon blue"><i class="bi bi-arrow-down-circle"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockRecentlyReceived">0</div>
+        <div class="stock-stat-label">Recently received</div>
+      </div>
+
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon green"><i class="bi bi-check2-circle"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockActiveItems">0</div>
+        <div class="stock-stat-label">Active stock items</div>
+      </div>
+
+      <div class="stock-stat-card">
+        <div class="stock-stat-top">
+          <span class="stock-stat-icon red"><i class="bi bi-exclamation-circle"></i></span>
+          <button class="stock-card-menu"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+        <div class="stock-stat-value" id="stockLowAlerts">0</div>
+        <div class="stock-stat-label">Low stock alerts</div>
+      </div>
+    </div>
+
+    <div class="stock-table-shell">
+      <div class="stock-toolbar-top">
+        <div class="stock-left-tools">
+          <select id="stockCategoryFilter" class="stock-tool-select">
+            <option value="all">Show : All Stock</option>
+            <option value="food">Food</option>
+            <option value="clothing">Clothing</option>
+            <option value="education">Education</option>
+            <option value="medical">Medical</option>
+            <option value="construction">Construction</option>
+            <option value="general">General</option>
+          </select>
+
+          <select id="stockLevelFilter" class="stock-tool-select">
+            <option value="all">Show Level : All Levels</option>
+            <option value="healthy">Healthy Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="critical">Critical Stock</option>
+          </select>
+
+          <select id="stockActiveFilter" class="stock-tool-select">
+            <option value="all">Show : All Active</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+
+        <div class="stock-right-tools">
+  <a href="/stock/add/" class="stock-tool-btn stock-link-btn stock-nav-link" data-return-page="stock">
+    <i class="bi bi-plus-lg"></i> Add Stock
+  </a>
+
+  <a href="/stock/issue/" class="stock-tool-btn stock-link-btn stock-nav-link" data-return-page="stock">
+    <i class="bi bi-box-arrow-up-right"></i> Issue Stock
+  </a>
+
+  <a href="/stock/adjust/" class="stock-tool-btn stock-link-btn stock-nav-link" data-return-page="stock">
+    <i class="bi bi-sliders"></i> Adjust Stock
+  </a>
+
+  <button class="stock-tool-btn" id="stockSortBtn" type="button">
+    <i class="bi bi-arrow-down-up"></i> Short by
+  </button>
+
+  <button class="stock-tool-btn" id="stockFilterBtn" type="button">
+    <i class="bi bi-funnel"></i> Filters
+  </button>
+</div>
+      </div>
+
+      <div class="stock-table-scroll">
+        <table class="table stock-table align-middle mb-0" id="stockTable">
+          <thead>
+            <tr>
+              <th style="width: 52px;">
+                <input type="checkbox" id="selectAllStock" />
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="name">
+                  Stock List <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="reg">
+                  Reg Code <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="updated">
+                  Last Updated <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>
+                <button class="stock-th-btn" data-sort-key="quantity">
+                  In Stocks <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th>Unit</th>
+              <th>Active</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="stockTableBody">
+            <!--
+              DATABASE NOTE:
+              Add these columns to stock_items:
+              1. stock_no INTEGER UNIQUE
+              2. reg_code VARCHAR(10) UNIQUE
+
+              Required reg_code format:
+              C + 2-digit sequential stock number + U + 4 random digits + lowercase c + 1 random uppercase letter
+
+              Example:
+              C01U4821cQ
+              C12U1054cM
+
+              This should be generated in the database, not the frontend in production.
+            
+
+            <tr
+              data-category="food"
+              data-active="true"
+              data-quantity="86"
+              data-reorder="30"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-rice">R</div>
+                  <div>
+                    <div class="stock-item-name">Rice Bags</div>
+                    <div class="stock-item-category">Food</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C01U4821cQ</span></td>
+              <td>03 Apr 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="86">
+                  <div class="stock-level-bar">
+                    <span style="width: 86%;"></span>
+                  </div>
+                  <div class="stock-level-text">86 / Reorder 30</div>
+                </div>
+              </td>
+              <td>Bags</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="education"
+              data-active="true"
+              data-quantity="42"
+              data-reorder="20"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-books">B</div>
+                  <div>
+                    <div class="stock-item-name">Exercise Books</div>
+                    <div class="stock-item-category">Education</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C02U1945cL</span></td>
+              <td>02 Apr 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="70">
+                  <div class="stock-level-bar">
+                    <span style="width: 70%;"></span>
+                  </div>
+                  <div class="stock-level-text">42 / Reorder 20</div>
+                </div>
+              </td>
+              <td>Books</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="medical"
+              data-active="true"
+              data-quantity="14"
+              data-reorder="18"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-medical">M</div>
+                  <div>
+                    <div class="stock-item-name">First Aid Kits</div>
+                    <div class="stock-item-category">Medical</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C03U6280cS</span></td>
+              <td>01 Apr 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="38">
+                  <div class="stock-level-bar">
+                    <span style="width: 38%;"></span>
+                  </div>
+                  <div class="stock-level-text">14 / Reorder 18</div>
+                </div>
+              </td>
+              <td>Kits</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="construction"
+              data-active="false"
+              data-quantity="8"
+              data-reorder="15"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-cement">C</div>
+                  <div>
+                    <div class="stock-item-name">Cement Bags</div>
+                    <div class="stock-item-category">Construction</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C04U3378cT</span></td>
+              <td>30 Mar 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="22">
+                  <div class="stock-level-bar">
+                    <span style="width: 22%;"></span>
+                  </div>
+                  <div class="stock-level-text">8 / Reorder 15</div>
+                </div>
+              </td>
+              <td>Bags</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="clothing"
+              data-active="true"
+              data-quantity="25"
+              data-reorder="10"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-clothes">U</div>
+                  <div>
+                    <div class="stock-item-name">School Uniforms</div>
+                    <div class="stock-item-category">Clothing</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C05U9217cP</span></td>
+              <td>29 Mar 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="64">
+                  <div class="stock-level-bar">
+                    <span style="width: 64%;"></span>
+                  </div>
+                  <div class="stock-level-text">25 / Reorder 10</div>
+                </div>
+              </td>
+              <td>Pieces</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              data-category="general"
+              data-active="true"
+              data-quantity="11"
+              data-reorder="12"
+            >
+              <td><input type="checkbox" class="stock-row-check" /></td>
+              <td>
+                <div class="stock-item-cell">
+                  <div class="stock-thumb stock-thumb-general">T</div>
+                  <div>
+                    <div class="stock-item-name">Toiletries Pack</div>
+                    <div class="stock-item-category">General</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="stock-reg-badge">C06U5406cN</span></td>
+              <td>28 Mar 2026</td>
+              <td>
+                <div class="stock-level-wrap" data-stock-percent="30">
+                  <div class="stock-level-bar">
+                    <span style="width: 30%;"></span>
+                  </div>
+                  <div class="stock-level-text">11 / Reorder 12</div>
+                </div>
+              </td>
+              <td>Packs</td>
+              <td>
+                <label class="stock-toggle">
+                  <input type="checkbox" checked />
+                  <span></span>
+                </label>
+              </td>
+              <td>
+                <div class="stock-action-group">
+                  <button class="stock-action-btn" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="stock-action-btn" title="More">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          -->
+          </tbody>
+
+        </table>
+      </div>
+
+      <div class="stock-table-footer">
+        <div class="stock-entries-count" id="stockEntriesInfo">Showing 1 to 6 of 6 entries</div>
+
+        <div class="stock-pagination" id="stockPagination">
+  <button class="stock-page-btn active">1</button>
+</div>
+      </div>
+    </div>
+
+    <div class="stock-transactions-shell">
+  <div class="stock-transactions-header">
+    <h3><i class="bi bi-clock-history"></i> Recent stock transactions</h3>
+  </div>
+
+  <div class="stock-transactions-list" id="stockTransactionsList"></div>
+</div>
+    </div>
+
+    <footer class="d-flex justify-content-between  align-items-center text-center px-4 py-3 border-top">
+      <span>© 2026 Umbrella Connect - Admin panel</span>
+      <span><i class="bi bi-arrow-repeat me-1"></i> last sync 10:32 AM</span>
+    </footer>
+</div>
+
+</section>
+<!-- ADD USER MODAL -->
+<div class="user-modal-overlay" id="addUserModalOverlay">
+  <div class="user-modal-card">
+    <div class="user-modal-header">
+      <div>
+        <h3>Add User</h3>
+        <p class="text-mute mb-0">Create a new dashboard user and save the Supabase bucket image URL.</p>
+      </div>
+      <button type="button" class="user-modal-close" id="closeAddUserModalBtn">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div id="addUserMessage" class="user-modal-message is-hidden"></div>
+
+    <form id="addUserForm" class="user-modal-form">
+      <div class="user-form-grid">
+        <div class="user-form-group">
+          <label for="addUserFirstName">First name</label>
+          <input type="text" id="addUserFirstName" class="form-control" required />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserLastName">Last name</label>
+          <input type="text" id="addUserLastName" class="form-control" />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserUsername">Username</label>
+          <input type="text" id="addUserUsername" class="form-control" required />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserEmail">Email</label>
+          <input type="email" id="addUserEmail" class="form-control" required />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserPhone">Phone</label>
+          <input type="text" id="addUserPhone" class="form-control" />
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserRole">Role</label>
+          <select id="addUserRole" class="form-control" required>
+            <option value="admin">Admin</option>
+            <option value="donor">Donor</option>
+            <option value="volunteer">Volunteer</option>
+          </select>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserStatus">Status</label>
+          <select id="addUserStatus" class="form-control" required>
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="terminated">Terminated</option>
+          </select>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserVerified">Verified</label>
+          <select id="addUserVerified" class="form-control">
+            <option value="false">Not verified</option>
+            <option value="true">Verified</option>
+          </select>
+        </div>
+
+        <div class="user-form-group full-span">
+          <label for="addUserProfilePhoto">Profile photo URL</label>
+          <input
+            type="url"
+            id="addUserProfilePhoto"
+            class="form-control"
+            placeholder="https://your-project.supabase.co/storage/v1/object/public/your-bucket/users/john.jpg"
+          />
+        </div>
+
+        <div class="user-form-group full-span">
+          <div class="user-photo-preview-wrap">
+            <img
+              id="addUserPhotoPreview"
+              class="user-photo-preview"
+              src="https://i.pravatar.cc/120?img=12"
+              alt="Preview"
+            />
+          </div>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserPassword">Password</label>
+          <input type="password" id="addUserPassword" class="form-control" required />
+          <small class="text-mute">Minimum 8 characters.</small>
+        </div>
+
+        <div class="user-form-group">
+          <label for="addUserConfirmPassword">Confirm password</label>
+          <input type="password" id="addUserConfirmPassword" class="form-control" required />
+        </div>
+      </div>
+
+      <div class="user-modal-actions">
+        <button type="button" class="user-cancel-btn" id="cancelAddUserBtn">Cancel</button>
+        <button type="submit" class="btn-user-add">
+          <i class="bi bi-plus-lg"></i> Create User
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+    
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
+  const identifierInput = document.getElementById("loginIdentifier");
+  const passwordInput = document.getElementById("loginPassword");
+  const errorBox = document.getElementById("loginError");
+
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const identifier = identifierInput?.value.trim() || "";
+    const password = passwordInput?.value || "";
+
+    if (errorBox) errorBox.textContent = "";
+
+    try {
+      const response = await fetch("/api/auth/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          identifier,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Login failed");
+      }
+
+      window.location.href = data.redirect_url || "/dashboard/";
+    } catch (error) {
+      if (errorBox) {
+        errorBox.textContent = error.message;
+      } else {
+        alert(error.message);
+      }
+    }
+  });
+});
+</script>
+<script src="../assets/js/dashboard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

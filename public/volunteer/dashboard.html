@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella Connect · Volunteer Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <style>
+    .volunteer-shell-page { display: flex; min-height: 100vh; background: var(--sidebar-bg); }
+    .volunteer-sidebar {
+      width: 280px; background: var(--sidebar-background); color: #fff; padding: 2rem 1.2rem;
+      border-right: 1px solid var(--border-light); box-shadow: 4px 0 12px rgba(0,0,0,0.02);
+      position: sticky; top: 0; height: 100vh;
+    }
+    .volunteer-logo { font-weight: 800; font-size: 1.6rem; display:flex; align-items:center; gap:.5rem; margin-bottom: 2rem; }
+    .volunteer-logo span { color: var(--brand); }
+    .volunteer-nav-item {
+      display:flex; align-items:center; gap:.85rem; padding:.85rem 1rem; border-radius:16px;
+      color:#edf2f7; font-weight:600; cursor:pointer; margin-bottom:.4rem; transition:.2s ease;
+    }
+    .volunteer-nav-item i { color: var(--sidebar-icon); width: 24px; }
+    .volunteer-nav-item.active { background: var(--brand-soft); color: var(--brand); }
+    .volunteer-nav-item.active i { color: var(--text-muted); }
+    .volunteer-nav-item:hover { background: rgba(255,255,255,.08); }
+
+    .volunteer-main {
+      flex:1; min-width:0; padding: 2rem 2.25rem 2.5rem;
+      background: var(--card-bg);
+    }
+
+    .page-pane { display:none; animation: pageFade .22s ease; }
+    .page-pane.active { display:block; }
+
+    .hero-strip {
+      border: 1px solid var(--border-light); border-radius: 32px; padding: 1.6rem;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--brand-soft) 35%, white 65%), var(--card-bg));
+      margin-bottom: 1.25rem;
+    }
+    body.dark-mode .hero-strip {
+      background: linear-gradient(135deg, rgba(73,118,172,.18), rgba(37,49,65,.95));
+    }
+    .hero-grid {
+      display:grid; grid-template-columns: 1.4fr .8fr; gap:1rem; align-items:stretch;
+    }
+    .hero-kpis {
+      display:grid; grid-template-columns: repeat(3,1fr); gap:1rem; margin-top: 1rem;
+    }
+    .hero-kpi {
+      background: var(--card-bg); border:1px solid var(--border-light); border-radius: 22px; padding:1rem 1.05rem;
+    }
+    .hero-kpi small { color: var(--text-muted); font-weight:600; display:block; margin-bottom:.35rem; }
+    .hero-kpi strong { font-size: 1.6rem; color: var(--text-primary); }
+
+    .panel-card {
+      background: var(--card-bg); border:1px solid var(--border-light); border-radius: 28px; padding:1.25rem;
+    }
+
+    .activity-grid {
+      display:grid; grid-template-columns: repeat(auto-fill,minmax(310px,1fr)); gap:1rem;
+    }
+    .activity-card {
+      border:1px solid var(--border-light); border-radius: 26px; overflow:hidden; background: var(--card-bg);
+      transition: .2s ease; display:flex; flex-direction:column;
+    }
+    .activity-card:hover { transform: translateY(-3px); }
+    .activity-image {
+      position:relative; height: 220px; background:#e9eef2; overflow:hidden;
+    }
+    .activity-image img { width:100%; height:100%; object-fit:cover; display:block; }
+    .activity-image .activity-chip {
+      position:absolute; top:16px; left:16px; padding:.45rem .8rem; border-radius:999px;
+      font-weight:700; font-size:.78rem; background: rgba(255,255,255,.92); color: var(--text-primary);
+      border:1px solid rgba(255,255,255,.8);
+    }
+    .activity-body { padding: 1rem 1rem 1.1rem; display:flex; flex-direction:column; gap:.75rem; flex:1; }
+    .activity-body h4 { margin:0; font-size:1.12rem; font-weight:800; }
+    .activity-meta { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .activity-meta span {
+      padding:.35rem .65rem; border-radius:999px; font-size:.8rem; font-weight:700;
+      border:1px solid var(--border-light); background: var(--sidebar-bg); color: var(--text-primary);
+    }
+    .activity-desc { color: var(--text-muted); font-size:.92rem; line-height:1.55; }
+    .activity-actions { display:flex; gap:.75rem; margin-top:auto; }
+
+    .ghost-btn, .primary-pill-btn {
+      min-height: 46px; border-radius: 999px; padding: 0 1rem; font-weight: 700; border:1px solid var(--border-light);
+    }
+    .ghost-btn { background: var(--sidebar-bg); color: var(--text-primary); }
+    .primary-pill-btn {
+      background: linear-gradient(135deg, var(--brand), var(--brand-secondary)); color:#fff; border:none;
+    }
+
+    .history-table-wrap { overflow-x:auto; border-radius: 22px; border:1px solid var(--border-light); }
+    .history-table { width:100%; min-width: 980px; margin:0; }
+    .history-table thead th {
+      background: color-mix(in srgb, var(--brand-soft) 35%, white 65%); padding: .95rem .85rem; border-bottom:1px solid var(--border-light);
+    }
+    body.dark-mode .history-table thead th { background:#2d3a4b; }
+    .history-table tbody td { padding: .95rem .85rem; border-bottom:1px solid var(--border-light); }
+
+    .status-pill {
+      display:inline-flex; align-items:center; justify-content:center; padding:.42rem .82rem; border-radius:999px;
+      font-size:.8rem; font-weight:800; border:1px solid transparent; text-transform:capitalize;
+    }
+    .status-pill.pending { background:#fff8e8; color:#b26a00; border-color:#ffe2a5; }
+    .status-pill.reviewing { background:#e8f6ff; color:#116e9a; border-color:#c8e6f5; }
+    .status-pill.approved { background:#ecfdf3; color:#117a37; border-color:#c8f1d6; }
+    .status-pill.rejected { background:#fff0f0; color:#c23535; border-color:#f6c5c5; }
+
+    .mini-state {
+      border:1px dashed var(--border-light); border-radius: 20px; padding: 1.1rem; color: var(--text-muted);
+      text-align:center;
+    }
+
+    .calendar-shell {
+      display:grid; grid-template-columns: 320px 1fr; gap: 1.1rem;
+    }
+    .calendar-side, .calendar-main-board {
+      background: var(--card-bg); border:1px solid var(--border-light); border-radius: 28px; padding: 1.15rem;
+    }
+    .calendar-mini-grid, .calendar-main-grid { display:grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap:.45rem; }
+    .calendar-mini-weekdays, .calendar-main-weekdays { display:grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap:.45rem; margin-bottom:.45rem; }
+    .calendar-mini-weekdays span, .calendar-main-weekdays span {
+      text-align:center; color: var(--text-muted); font-size:.8rem; font-weight:800;
+    }
+    .mini-day {
+      aspect-ratio:1/1; border-radius:14px; border:1px solid var(--border-light); background: var(--sidebar-bg);
+      display:flex; align-items:center; justify-content:center; font-weight:700; color: var(--text-primary);
+      position:relative;
+    }
+    .mini-day.today { background: color-mix(in srgb, var(--brand-soft) 50%, white 50%); color: var(--brand); }
+    .mini-day.selected { background: linear-gradient(135deg, var(--brand), var(--brand-secondary)); color:#fff; }
+    .mini-day.has-event::after {
+      content:""; width:8px; height:8px; border-radius:50%; background: var(--brand); position:absolute; bottom:8px;
+    }
+    .calendar-main-grid { grid-template-rows: repeat(6, minmax(120px,1fr)); }
+    .calendar-cell {
+      min-height:120px; border:1px solid var(--border-light); border-radius:20px; padding:.7rem; background: var(--sidebar-bg);
+      display:flex; flex-direction:column; gap:.45rem;
+    }
+    .calendar-cell.muted { opacity:.55; }
+    .calendar-cell.today { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--brand) 35%, transparent 65%); }
+    .calendar-date-row { display:flex; justify-content:space-between; align-items:center; }
+    .calendar-date-num { font-weight:800; }
+    .calendar-entry {
+      border-radius: 12px; padding:.42rem .55rem; font-size:.76rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .calendar-entry.approved { background:#16a34a; }
+    .calendar-entry.reviewing { background:#0284c7; }
+    .calendar-entry.pending { background:#d97706; }
+    .calendar-entry.rejected { background:#dc2626; }
+
+    .legend-stack { display:flex; flex-direction:column; gap:.7rem; }
+    .legend-item {
+      display:flex; align-items:center; gap:.65rem; padding:.8rem .9rem; border-radius:16px; background: var(--sidebar-bg); border:1px solid var(--border-light);
+    }
+    .legend-dot { width:14px; height:14px; border-radius:50%; }
+
+    .drawer-backdrop, .apply-modal-backdrop {
+      position:fixed; inset:0; background: rgba(15,23,42,.58); display:none; align-items:center; justify-content:center; z-index:9999; padding:1rem;
+    }
+    .drawer-backdrop.active, .apply-modal-backdrop.active { display:flex; }
+    .detail-drawer, .apply-modal {
+      width:min(940px,100%); max-height: 92vh; overflow:auto; background: var(--card-bg); border-radius:30px; border:1px solid var(--border-light);
+      box-shadow: 0 24px 64px rgba(0,0,0,.18);
+    }
+    .modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:1.35rem 1.4rem 1rem; border-bottom:1px solid var(--border-light); }
+    .modal-close-btn {
+      width:42px; height:42px; border-radius:14px; border:1px solid var(--border-light); background: var(--sidebar-bg); color: var(--text-primary);
+    }
+    .apply-body { padding: 1.25rem 1.4rem 1.4rem; }
+    .stepper { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
+    .step-dot {
+      flex:1; display:flex; align-items:center; gap:.65rem; padding:.8rem .9rem; border-radius:18px; border:1px solid var(--border-light); background: var(--sidebar-bg);
+    }
+    .step-dot strong {
+      width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+      background: color-mix(in srgb, var(--brand-soft) 55%, white 45%); color: var(--brand);
+    }
+    .step-dot.active { border-color: color-mix(in srgb, var(--brand) 35%, var(--border-light) 65%); }
+    .step-dot.active strong { background: linear-gradient(135deg, var(--brand), var(--brand-secondary)); color:#fff; }
+    .apply-step { display:none; }
+    .apply-step.active { display:block; }
+    .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:1rem; }
+    .form-group { display:flex; flex-direction:column; gap:.42rem; }
+    .form-group.full { grid-column:1 / -1; }
+    .form-group label { font-weight:700; color: var(--text-primary); }
+    .form-group input, .form-group select, .form-group textarea {
+      min-height:52px; border-radius:16px; border:1px solid var(--border-light); background: var(--sidebar-bg);
+      color: var(--text-primary); padding:.85rem 1rem; outline:none;
+    }
+    .form-group textarea { min-height:120px; resize:vertical; }
+    .activity-preview-box {
+      border:1px solid var(--border-light); background: var(--sidebar-bg); border-radius:22px; padding:1rem;
+      display:grid; grid-template-columns: 150px 1fr; gap:1rem;
+    }
+    .activity-preview-box img { width:100%; height:150px; object-fit:cover; border-radius:18px; }
+    .apply-actions { display:flex; justify-content:space-between; gap:1rem; margin-top:1.2rem; flex-wrap:wrap; }
+
+    .message-strip {
+      margin-bottom: 1rem; padding: .95rem 1rem; border-radius:18px; border:1px solid transparent; font-weight:700; display:none;
+    }
+    .message-strip.show { display:block; }
+    .message-strip.success { background:#ecfdf3; color:#117a37; border-color:#c8f1d6; }
+    .message-strip.error { background:#fff0f0; color:#c23535; border-color:#f6c5c5; }
+    .message-strip.info { background:#e8f6ff; color:#116e9a; border-color:#c8e6f5; }
+
+    .detail-grid { display:grid; grid-template-columns: 260px 1fr; gap:1rem; padding:1.25rem 1.4rem 1.4rem; }
+    .detail-thumb { border-radius:24px; overflow:hidden; border:1px solid var(--border-light); background: var(--sidebar-bg); }
+    .detail-thumb img { width:100%; height:100%; object-fit:cover; min-height:220px; }
+    .detail-list { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:.8rem; margin-top:1rem; }
+    .detail-list .detail-item { background: var(--sidebar-bg); border:1px solid var(--border-light); border-radius:18px; padding:.9rem; }
+    .detail-item small { color: var(--text-muted); display:block; margin-bottom:.25rem; font-weight:600; }
+    .detail-item strong { color: var(--text-primary); }
+
+
+    .toast-stack {
+      position: fixed; top: 1.2rem; right: 1.2rem; z-index: 12000; display:flex; flex-direction:column; gap:.8rem;
+      width:min(380px, calc(100vw - 2rem)); pointer-events:none;
+    }
+    .app-toast {
+      position:relative; overflow:hidden; border-radius:20px; border:1px solid var(--border-light); background: var(--card-bg);
+      box-shadow: 0 18px 40px rgba(15,23,42,.18); padding: 1rem 1rem 1.1rem; pointer-events:auto;
+      transform: translateX(0); opacity:1; transition:.22s ease;
+    }
+    .app-toast.removing { opacity:0; transform: translateX(20px); }
+    .app-toast-head { display:flex; align-items:flex-start; gap:.8rem; }
+    .app-toast-icon {
+      width:38px; height:38px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;
+    }
+    .app-toast.success .app-toast-icon { background:#ecfdf3; color:#117a37; }
+    .app-toast.error .app-toast-icon { background:#fff0f0; color:#c23535; }
+    .app-toast.info .app-toast-icon { background:#e8f6ff; color:#116e9a; }
+    .app-toast-title { font-weight:800; color:var(--text-primary); margin-bottom:.2rem; }
+    .app-toast-text { color:var(--text-muted); font-size:.92rem; line-height:1.5; }
+    .app-toast-close {
+      margin-left:auto; width:34px; height:34px; border-radius:12px; border:1px solid var(--border-light); background: var(--sidebar-bg); color:var(--text-primary);
+    }
+    .app-toast-progress {
+      position:absolute; left:0; bottom:0; height:4px; width:100%; transform-origin:left center;
+      animation: toast-progress linear forwards;
+    }
+    .app-toast.success .app-toast-progress { background:#22c55e; }
+    .app-toast.error .app-toast-progress { background:#ef4444; }
+    .app-toast.info .app-toast-progress { background:#0ea5e9; }
+    @keyframes toast-progress { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+
+    .assignments-shell { display:grid; grid-template-columns: 420px 1fr; gap:1rem; margin-bottom:1rem; }
+    .assignment-table-wrap { overflow-x:auto; border-radius:22px; border:1px solid var(--border-light); }
+    .assignment-table { width:100%; min-width:760px; margin:0; }
+    .assignment-table thead th { background: color-mix(in srgb, var(--brand-soft) 35%, white 65%); padding:.95rem .85rem; border-bottom:1px solid var(--border-light); }
+    body.dark-mode .assignment-table thead th { background:#2d3a4b; }
+    .assignment-table tbody td { padding:.9rem .85rem; border-bottom:1px solid var(--border-light); }
+    .tiny-note { font-size:.84rem; color:var(--text-muted); line-height:1.55; }
+
+    .settings-page-shell { display:flex; flex-direction:column; gap:1.2rem; }
+    .settings-hero-card, .settings-content-card {
+      background:var(--card-bg); border:1px solid var(--border-light); border-radius:30px; overflow:hidden;
+    }
+    .settings-cover { height:120px; background: linear-gradient(135deg, var(--brand), var(--brand-secondary)); }
+    .settings-hero-content { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1.2rem 1.35rem 1rem; flex-wrap:wrap; }
+    .settings-profile-block { display:flex; align-items:center; gap:1rem; }
+    .settings-avatar-wrap { margin-top:-64px; }
+    .settings-avatar { width:128px; height:128px; border-radius:28px; object-fit:cover; border:5px solid var(--card-bg); background:var(--sidebar-bg); }
+    .settings-hero-text h2 { margin:0; font-weight:800; color:var(--text-primary); }
+    .settings-mini-badges { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.65rem; }
+    .settings-mini-pill { padding:.42rem .75rem; border-radius:999px; border:1px solid var(--border-light); background:var(--sidebar-bg); font-size:.82rem; font-weight:700; color:var(--text-primary); }
+    .settings-tab-nav { display:flex; gap:.5rem; padding:0 1.35rem 1.2rem; flex-wrap:wrap; }
+    .settings-tab-btn { border:none; background:transparent; color:var(--text-muted); font-weight:800; padding:.65rem .95rem; border-radius:999px; }
+    .settings-tab-btn.active { background: color-mix(in srgb, var(--brand-soft) 45%, white 55%); color:var(--brand); }
+    .settings-content-card { padding:1.3rem; }
+    .settings-tab-panel { display:none; }
+    .settings-tab-panel.active { display:block; }
+    .settings-section-head h3 { margin:0; font-weight:800; color:var(--text-primary); }
+    .settings-section-head { margin-bottom:1rem; }
+    .settings-form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:1rem; }
+    .settings-password-form { display:grid; grid-template-columns:1fr; gap:1rem; max-width:760px; }
+    .settings-form-group { display:flex; flex-direction:column; gap:.42rem; }
+    .settings-form-group label { font-weight:700; color:var(--text-primary); }
+    .settings-form-group .form-control {
+      min-height:52px; border-radius:16px; border:1px solid var(--border-light); background:var(--sidebar-bg); color:var(--text-primary); padding:.85rem 1rem;
+    }
+    .settings-actions { display:flex; justify-content:flex-end; gap:.75rem; flex-wrap:wrap; margin-top:.6rem; }
+    .settings-outline-btn { min-height:48px; padding:0 1rem; border-radius:999px; border:1px solid var(--border-light); background:var(--sidebar-bg); color:var(--text-primary); font-weight:700; }
+    .settings-check-group { justify-content:flex-end; }
+    .settings-check-label { display:flex; align-items:center; gap:.55rem; font-weight:700; color:var(--text-primary); }
+    .settings-message { padding:.95rem 1rem; border-radius:18px; font-weight:700; margin-bottom:1rem; border:1px solid transparent; }
+    .settings-message.success { background:#ecfdf3; color:#117a37; border-color:#c8f1d6; }
+    .settings-message.error { background:#fff0f0; color:#c23535; border-color:#f6c5c5; }
+    .is-hidden { display:none !important; }
+
+    @media (max-width: 1200px) {
+      .hero-grid, .calendar-shell, .detail-grid, .assignments-shell { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 992px) {
+      .volunteer-shell-page { flex-direction:column; }
+      .volunteer-sidebar { width:100%; height:auto; position:relative; }
+      .hero-kpis, .form-grid, .detail-list, .settings-form-grid { grid-template-columns:1fr; }
+      .activity-preview-box { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <div class="volunteer-shell-page">
+    <aside class="volunteer-sidebar">
+      <div class="volunteer-logo"><i class="bi bi-umbrella fs-3"></i> <span>Umbrella</span>Care</div>
+
+      <div class="volunteer-nav-item active" data-page-target="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</div>
+      <div class="volunteer-nav-item" data-page-target="opportunities"><i class="bi bi-stars"></i> Activities</div>
+      <div class="volunteer-nav-item" data-page-target="applications"><i class="bi bi-clock-history"></i> My Applications</div>
+      <div class="volunteer-nav-item" data-page-target="calendar"><i class="bi bi-calendar-event"></i> Calendar</div>
+      <div class="volunteer-nav-item" data-page-target="settings"><i class="bi bi-gear"></i> Settings</div>
+
+      <hr>
+      <div class="mode-toggle text-center" id="themeToggleSide"><i class="bi bi-palette me-2"></i>light/dark</div>
+      <div style="margin-top:1rem;" class="logout-btn text-center" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</div>
+    </aside>
+
+    <main class="volunteer-main">
+      <nav class="dashboard-navbar">
+        <div class="navbar-left">
+          <div class="navbar-greeting">Hello, Volunteer 👋🏾</div>
+          <div class="navbar-date" id="todayLabel">Volunteer operations workspace</div>
+        </div>
+
+        <div class="navbar-right">
+          <div class="dashboard-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="globalSearchInput" placeholder="Search activities or applications">
+          </div>
+
+          <button class="nav-icon-btn" id="themeToggle" type="button">
+            <i class="bi bi-sun"></i>
+            <i class="bi bi-moon"></i>
+          </button>
+
+          <div class="profile-chip">
+            <img src="https://i.pravatar.cc/100?img=12" alt="Volunteer profile">
+            <div class="profile-info">
+              <span class="profile-name" id="profileNameChip">Volunteer</span>
+              <span class="profile-role">Approved activities only hit your calendar</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+      <section class="page-pane active" data-page="dashboard">
+        <div class="hero-strip">
+          <div class="hero-grid">
+            <div>
+              <div class="panel-title mb-2"><i class="bi bi-heart-pulse"></i> Volunteer dashboard</div>
+              <h2 class="mb-2" style="font-weight:800; color:var(--text-primary);">See active activities, apply fast, and track approvals without leaving the dashboard.</h2>
+              <p class="text-mute mb-0">This is stripped down for volunteer operations only. No donor noise, no admin clutter, just the pipeline that matters.</p>
+
+              <div class="hero-kpis">
+                <div class="hero-kpi"><small>Open activities</small><strong id="dashboardOpenActivities">0</strong></div>
+                <div class="hero-kpi"><small>My applications</small><strong id="dashboardMyApplications">0</strong></div>
+                <div class="hero-kpi"><small>Approved</small><strong id="dashboardApprovedCount">0</strong></div>
+              </div>
+            </div>
+
+            <div class="panel-card d-flex flex-column justify-content-between">
+              <div>
+                <div class="panel-title mb-2"><i class="bi bi-lightning-charge"></i> What happens here</div>
+                <div class="text-mute" style="line-height:1.65;">
+                  1. Browse active volunteer activities.<br>
+                  2. Apply through the same guided flow as your volunteer form.<br>
+                  3. Review all previous applications.<br>
+                  4. Approved items appear on your calendar automatically once the backend returns a schedule.
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3 flex-wrap">
+                <button class="primary-pill-btn" type="button" data-jump-page="opportunities"><i class="bi bi-stars me-2"></i>Browse Activities</button>
+                <button class="ghost-btn" type="button" data-jump-page="applications"><i class="bi bi-clock-history me-2"></i>View History</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-lg-8">
+            <div class="panel-card h-100">
+              <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+                <div>
+                  <div class="panel-title mb-1"><i class="bi bi-stars"></i> Featured activities</div>
+                  <p class="text-mute mb-0">Top active opportunities pulled from <code>volunteer_activities</code>.</p>
+                </div>
+                <button class="ghost-btn" type="button" data-jump-page="opportunities">See all</button>
+              </div>
+              <div class="activity-grid" id="featuredActivities"></div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="panel-card h-100">
+              <div class="panel-title"><i class="bi bi-calendar-check"></i> Upcoming approved schedule</div>
+              <div id="dashboardApprovedPreview"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-pane" data-page="opportunities">
+        <div class="panel-card mb-3">
+          <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+              <div class="panel-title mb-1"><i class="bi bi-stars"></i> Volunteer activities</div>
+              <p class="text-mute mb-0">Live activity feed for volunteers. Apply from here.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <select id="activityStatusFilter" class="volunteer-tool-select">
+                <option value="all">All activities</option>
+                <option value="open">Open slots only</option>
+                <option value="applied">Already applied</option>
+              </select>
+              <button class="ghost-btn" type="button" id="refreshActivitiesBtn"><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="activity-grid" id="activityGridMain"></div>
+      </section>
+
+      <section class="page-pane" data-page="applications">
+        <div class="panel-card">
+          <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+            <div>
+              <div class="panel-title mb-1"><i class="bi bi-clock-history"></i> My previous applications</div>
+              <p class="text-mute mb-0">Everything from <code>volunteer_applications</code> tied to the logged-in volunteer.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <select id="historyStatusFilter" class="volunteer-tool-select">
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button class="ghost-btn" type="button" id="refreshHistoryBtn"><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button>
+            </div>
+          </div>
+
+          <div class="history-table-wrap">
+            <table class="table history-table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Application Code</th>
+                  <th>Activity</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>County</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="applicationHistoryBody">
+                <tr><td colspan="6" class="text-center py-4 text-muted">Loading applications...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-pane" data-page="calendar">
+        <div class="panel-card mb-3">
+          <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+              <div class="panel-title mb-1"><i class="bi bi-calendar-event"></i> Volunteer calendar</div>
+              <p class="text-mute mb-0">Approved volunteer assignments sit above general calendar events for each day.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <button class="ghost-btn" id="calendarPrevBtn" type="button"><i class="bi bi-chevron-left"></i></button>
+              <button class="ghost-btn" id="calendarTodayBtn" type="button">Today</button>
+              <button class="ghost-btn" id="calendarNextBtn" type="button"><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="assignments-shell">
+          <div class="panel-card">
+            <div class="panel-title mb-2"><i class="bi bi-person-check"></i> Assign approved volunteers by day</div>
+            <p class="tiny-note mb-3">This manager only lists approved applications. Assignments are shown above general events in the month calendar.</p>
+            <div class="form-grid">
+              <div class="form-group full">
+                <label for="assignmentApprovedSelect">Approved volunteer / activity</label>
+                <select id="assignmentApprovedSelect"></select>
+              </div>
+              <div class="form-group">
+                <label for="assignmentDate">Assignment date</label>
+                <input type="date" id="assignmentDate">
+              </div>
+              <div class="form-group">
+                <label for="assignmentShift">Shift / label</label>
+                <input type="text" id="assignmentShift" placeholder="e.g. Morning duty">
+              </div>
+              <div class="form-group full">
+                <label for="assignmentNotes">Assignment notes</label>
+                <textarea id="assignmentNotes" placeholder="Optional notes for the volunteer day"></textarea>
+              </div>
+            </div>
+            <div class="apply-actions mt-3">
+              <span class="tiny-note">There is no assignment table in the schema you sent, so this file stores demo assignments in localStorage until you add one in the backend.</span>
+              <button class="primary-pill-btn" type="button" id="saveAssignmentBtn"><i class="bi bi-plus-lg me-2"></i>Assign Day</button>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-title mb-2"><i class="bi bi-calendar-week"></i> Approved volunteers table</div>
+            <div class="assignment-table-wrap">
+              <table class="table assignment-table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Volunteer</th>
+                    <th>Activity</th>
+                    <th>Assigned Day</th>
+                    <th>Shift</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="assignmentTableBody">
+                  <tr><td colspan="6" class="text-center py-4 text-muted">No volunteer day assignments yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="calendar-shell">
+          <aside class="calendar-side">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <strong id="calendarMiniTitle">Month</strong>
+              <i class="bi bi-calendar3"></i>
+            </div>
+            <div class="calendar-mini-weekdays">
+              <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+            <div class="calendar-mini-grid" id="calendarMiniGrid"></div>
+
+            <hr>
+            <div class="panel-title mb-3"><i class="bi bi-list-task"></i> Legend</div>
+            <div class="legend-stack">
+              <div class="legend-item"><span class="legend-dot" style="background:#16a34a"></span><div><strong>Volunteer assignment</strong><div class="text-mute small">Displayed first in day cells</div></div></div>
+              <div class="legend-item"><span class="legend-dot" style="background:#2563eb"></span><div><strong>General calendar event</strong><div class="text-mute small">Pulled from calendar_events</div></div></div>
+              <div class="legend-item"><span class="legend-dot" style="background:#9ca3af"></span><div><strong>All day / multi-day</strong><div class="text-mute small">Span visible on each day covered</div></div></div>
+            </div>
+          </aside>
+
+          <div class="calendar-main-board">
+            <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap">
+              <h3 class="mb-0" id="calendarMainTitle" style="font-weight:800;"></h3>
+              <span class="text-mute" id="calendarApprovedMeta">0 assignments · 0 general events</span>
+            </div>
+
+            <div class="calendar-main-weekdays mb-2">
+              <span>Sunday</span><span>Monday</span><span>Tuesday</span><span>Wednesday</span><span>Thursday</span><span>Friday</span><span>Saturday</span>
+            </div>
+            <div class="calendar-main-grid" id="calendarMainGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-pane" data-page="settings">
+  <div class="settings-page-shell">
+    <div class="settings-hero-card">
+      <div class="settings-cover"></div>
+
+      <div class="settings-hero-content">
+        <div class="settings-profile-block">
+          <div class="settings-avatar-wrap">
+            <img id="settingsProfilePhoto" src="https://i.pravatar.cc/140?img=12" alt="Profile photo" class="settings-avatar" />
+          </div>
+
+          <div class="settings-hero-text">
+            <h2 id="settingsFullName">User Settings</h2>
+            <p id="settingsEmailHero" class="text-mute mb-1">user@email.com</p>
+            <div class="settings-mini-badges">
+              <span class="settings-mini-pill" id="settingsRoleHero">Volunteer</span>
+              <span class="settings-mini-pill" id="settingsStatusHero">Status</span>
+              <span class="settings-mini-pill" id="settingsVerifiedHero">Verification</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="settings-outline-btn" type="button" id="refreshSettingsBtn">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+
+      <div class="settings-tab-nav">
+        <button class="settings-tab-btn active" data-settings-tab="profile">Profile</button>
+        <button class="settings-tab-btn" data-settings-tab="details">My details</button>
+        <button class="settings-tab-btn" data-settings-tab="password">Password</button>
+      </div>
+    </div>
+
+    <div class="settings-content-card">
+      <div id="settingsMessage" class="settings-message is-hidden"></div>
+
+      <div class="settings-tab-panel active" data-settings-panel="profile">
+        <div class="settings-section-head">
+          <div>
+            <h3>Profile</h3>
+            <p class="text-mute mb-0">Update the public-facing account identity for this dashboard user.</p>
+          </div>
+        </div>
+
+        <form id="settingsProfileForm" class="settings-form-grid">
+          <input type="hidden" id="settingsUserId" />
+
+          <div class="settings-form-group full-span">
+            <label for="settingsProfilePhotoInput">Profile photo URL</label>
+            <input type="url" id="settingsProfilePhotoInput" class="form-control" placeholder="https://example.com/photo.jpg" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsFirstName">First name</label>
+            <input type="text" id="settingsFirstName" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsLastName">Last name</label>
+            <input type="text" id="settingsLastName" class="form-control" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsUsername">Username</label>
+            <input type="text" id="settingsUsername" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsRole">Role</label>
+            <select id="settingsRole" class="form-control">
+              <option value="volunteer">Volunteer</option>
+              <option value="admin">Admin</option>
+              <option value="donor">Donor</option>
+            </select>
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsStatus">Status</label>
+            <select id="settingsStatus" class="form-control">
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="terminated">Terminated</option>
+            </select>
+          </div>
+
+          <div class="settings-form-group settings-check-group">
+            <label class="settings-check-label">
+              <input type="checkbox" id="settingsVerified" />
+              <span>Verified account</span>
+            </label>
+          </div>
+
+          <div class="settings-actions full-span">
+            <button type="button" class="settings-outline-btn" id="resetProfileSettingsBtn">Reset</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-check2-circle"></i> Save profile
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="settings-tab-panel" data-settings-panel="details">
+        <div class="settings-section-head">
+          <div>
+            <h3>My details</h3>
+            <p class="text-mute mb-0">Operational account details pulled from your user table.</p>
+          </div>
+        </div>
+
+        <form id="settingsDetailsForm" class="settings-form-grid">
+          <div class="settings-form-group">
+            <label for="settingsEmail">Email address</label>
+            <input type="email" id="settingsEmail" class="form-control" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsPhone">Phone number</label>
+            <input type="text" id="settingsPhone" class="form-control" />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsRegCode">Registration code</label>
+            <input type="text" id="settingsRegCode" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsFullNameReadOnly">Full name</label>
+            <input type="text" id="settingsFullNameReadOnly" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsCreatedAt">Created at</label>
+            <input type="text" id="settingsCreatedAt" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsLastSeen">Last seen</label>
+            <input type="text" id="settingsLastSeen" class="form-control" disabled />
+          </div>
+
+          <div class="settings-form-group full-span">
+            <label for="settingsUpdatedAt">Last updated</label>
+            <input type="text" id="settingsUpdatedAt" class="form-control" disabled />
+          </div>
+
+          <div class="settings-actions full-span">
+            <button type="button" class="settings-outline-btn" id="resetDetailsSettingsBtn">Reset</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-save2"></i> Save details
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="settings-tab-panel" data-settings-panel="password">
+        <div class="settings-section-head">
+          <div>
+            <h3>Password</h3>
+            <p class="text-mute mb-0">Change the password for this account. This needs a dedicated backend endpoint.</p>
+          </div>
+        </div>
+
+        <form id="settingsPasswordForm" class="settings-password-form">
+          <div class="settings-form-group">
+            <label for="settingsCurrentPassword">Current password</label>
+            <input type="password" id="settingsCurrentPassword" class="form-control" placeholder="Enter current password" required />
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsNewPassword">New password</label>
+            <input type="password" id="settingsNewPassword" class="form-control" placeholder="Enter new password" required />
+            <small class="text-mute">Use at least 8 characters.</small>
+          </div>
+
+          <div class="settings-form-group">
+            <label for="settingsConfirmPassword">Confirm new password</label>
+            <input type="password" id="settingsConfirmPassword" class="form-control" placeholder="Confirm new password" required />
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" class="settings-outline-btn" id="resetPasswordSettingsBtn">Cancel</button>
+            <button type="submit" class="btn-user-add">
+              <i class="bi bi-shield-lock"></i> Update password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="detailDrawerBackdrop">
+    <div class="detail-drawer">
+      <div class="modal-head">
+        <div>
+          <h4 id="detailTitle" class="mb-1">Activity details</h4>
+          <p class="text-mute mb-0">Inspect the opportunity before applying.</p>
+        </div>
+        <button class="modal-close-btn" type="button" id="closeDetailDrawer"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-thumb"><img id="detailImage" src="" alt="Activity image"></div>
+        <div>
+          <div class="activity-meta mb-2" id="detailMeta"></div>
+          <p class="text-mute mb-0" id="detailDescription"></p>
+          <div class="detail-list" id="detailList"></div>
+          <div class="apply-actions mt-4">
+            <button class="ghost-btn" type="button" id="detailCloseBtn">Close</button>
+            <button class="primary-pill-btn" type="button" id="detailApplyBtn"><i class="bi bi-send-check me-2"></i>Apply Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="apply-modal-backdrop" id="applyModalBackdrop">
+    <div class="apply-modal">
+      <div class="modal-head">
+        <div>
+          <h4 class="mb-1">Volunteer application</h4>
+          <p class="text-mute mb-0">Same guided flow, now embedded inside the dashboard.</p>
+        </div>
+        <button class="modal-close-btn" type="button" id="closeApplyModal"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <div class="apply-body">
+        <div class="stepper">
+          <div class="step-dot active" data-step-indicator="1"><strong>1</strong><div><div style="font-weight:800;">Personal Info</div><small class="text-mute">Volunteer application record</small></div></div>
+          <div class="step-dot" data-step-indicator="2"><strong>2</strong><div><div style="font-weight:800;">Activity</div><small class="text-mute">Confirm selected activity</small></div></div>
+          <div class="step-dot" data-step-indicator="3"><strong>3</strong><div><div style="font-weight:800;">Submit</div><small class="text-mute">Send application</small></div></div>
+        </div>
+
+        <form id="applyForm">
+          <input type="hidden" id="applyActivityId" required>
+
+          <section class="apply-step active" data-step="1">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="applyFirstName">First name</label>
+                <input type="text" id="applyFirstName" required>
+              </div>
+              <div class="form-group">
+                <label for="applyLastName">Last name</label>
+                <input type="text" id="applyLastName" required>
+              </div>
+              <div class="form-group">
+                <label for="applyPhone">Phone</label>
+                <input type="text" id="applyPhone" required>
+              </div>
+              <div class="form-group">
+                <label for="applyEmail">Email</label>
+                <input type="email" id="applyEmail" required>
+              </div>
+              <div class="form-group">
+                <label for="applyCounty">County</label>
+                <input type="text" id="applyCounty" required>
+              </div>
+              <div class="form-group">
+                <label for="applyIdPassport">National ID / Passport</label>
+                <input type="text" id="applyIdPassport" required>
+              </div>
+              <div class="form-group full">
+                <label for="applyPassportPhotoUrl">Passport photo URL</label>
+                <input type="url" id="applyPassportPhotoUrl" placeholder="https://...">
+              </div>
+            </div>
+            <div class="apply-actions">
+              <span></span>
+              <button class="primary-pill-btn" type="button" data-next-step="2">Next</button>
+            </div>
+          </section>
+
+          <section class="apply-step" data-step="2">
+            <div class="activity-preview-box">
+              <img id="applyPreviewImage" src="" alt="Selected activity">
+              <div>
+                <div class="activity-meta mb-2" id="applyPreviewMeta"></div>
+                <h4 id="applyPreviewTitle" style="font-weight:800;"></h4>
+                <p class="text-mute mb-0" id="applyPreviewDescription"></p>
+              </div>
+            </div>
+            <div class="apply-actions">
+              <button class="ghost-btn" type="button" data-prev-step="1">Back</button>
+              <button class="primary-pill-btn" type="button" data-next-step="3">Next</button>
+            </div>
+          </section>
+
+          <section class="apply-step" data-step="3">
+            <div class="panel-card">
+              <div class="panel-title mb-2"><i class="bi bi-check2-square"></i> Submission review</div>
+              <p class="text-mute mb-3">This creates a record in <code>volunteer_applications</code> with status <strong>pending</strong>. Your calendar only updates after approval and only if the backend sends a schedule.</p>
+              <div class="detail-list" id="reviewGrid"></div>
+            </div>
+            <div class="apply-actions">
+              <button class="ghost-btn" type="button" data-prev-step="2">Back</button>
+              <button class="primary-pill-btn" type="submit" id="submitApplicationBtn"><i class="bi bi-send-check me-2"></i>Submit Application</button>
+            </div>
+          </section>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = {
+      activities: "/api/volunteer/activities/",
+      applications: "/api/volunteer/applications/",
+      me: "/api/volunteer/me/",
+      calendarEvents: "/api/calendar/events/"
+    };
+
+    const ENABLE_DEMO_FALLBACK = true;
+
+    const demoActivities = [
+      {
+        id: "2dff2b3f-1",
+        slug: "feeding-day-kasarani",
+        title: "Feeding Day Support",
+        description: "Support food distribution, queue coordination, child guidance and cleanup for the outreach day.",
+        image_url: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=900&q=80",
+        is_active: true,
+        number_of_volunteers: 18,
+        slots_taken: 9,
+        slots_remaining: 9
+      },
+      {
+        id: "2dff2b3f-2",
+        slug: "reading-club",
+        title: "Weekend Reading Club",
+        description: "Help children through reading exercises, story time and literacy support sessions.",
+        image_url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80",
+        is_active: true,
+        number_of_volunteers: 12,
+        slots_taken: 5,
+        slots_remaining: 7
+      },
+      {
+        id: "2dff2b3f-3",
+        slug: "compound-cleanup",
+        title: "Compound Clean-up Drive",
+        description: "Outdoor cleanup, sorting, yard organization and sanitation work around the home grounds.",
+        image_url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80",
+        is_active: true,
+        number_of_volunteers: 10,
+        slots_taken: 3,
+        slots_remaining: 7
+      }
+    ];
+
+    const demoCalendarEvents = [
+      {
+        id: "evt-1", title: "Staff Briefing", description: "General operations briefing.", start_date: "2026-04-11", end_date: "2026-04-11", start_time: "07:00", end_time: "08:00", all_day: false, color: "#2563eb", status: "scheduled", position: 0
+      },
+      {
+        id: "evt-2", title: "Food Donation Delivery", description: "Receiving and counting stock.", start_date: "2026-04-11", end_date: "2026-04-11", start_time: "10:30", end_time: "12:00", all_day: false, color: "#7c3aed", status: "scheduled", position: 1
+      },
+      {
+        id: "evt-3", title: "Monthly Cleanup Window", description: "All-day compound maintenance.", start_date: "2026-04-14", end_date: "2026-04-15", all_day: true, color: "#0f766e", status: "tentative", position: 0
+      }
+    ];
+
+    const demoApplications = [
+      {
+        id: "app-1",
+        application_code: "VAC-2026-001",
+        first_name: "Jeff",
+        last_name: "Volunteer",
+        phone: "+254700000001",
+        email: "volunteer@example.com",
+        county: "Nairobi",
+        id_passport: "12345678",
+        passport_photo_url: "",
+        activity_id: "2dff2b3f-1",
+        activity_title: "Feeding Day Support",
+        status: "approved",
+        notes: "Report by 8:00 AM at the main gate.",
+        created_at: "2026-04-01T08:30:00Z",
+        scheduled_start: "2026-04-11T08:00:00Z",
+        scheduled_end: "2026-04-11T13:00:00Z"
+      },
+      {
+        id: "app-2",
+        application_code: "VAC-2026-002",
+        first_name: "Jeff",
+        last_name: "Volunteer",
+        phone: "+254700000001",
+        email: "volunteer@example.com",
+        county: "Nairobi",
+        id_passport: "12345678",
+        passport_photo_url: "",
+        activity_id: "2dff2b3f-2",
+        activity_title: "Weekend Reading Club",
+        status: "pending",
+        notes: "Awaiting review.",
+        created_at: "2026-04-03T10:20:00Z"
+      },
+      {
+        id: "app-3",
+        application_code: "VAC-2026-003",
+        first_name: "Jeff",
+        last_name: "Volunteer",
+        phone: "+254700000001",
+        email: "volunteer@example.com",
+        county: "Kiambu",
+        id_passport: "12345678",
+        passport_photo_url: "",
+        activity_id: "2dff2b3f-3",
+        activity_title: "Compound Clean-up Drive",
+        status: "reviewing",
+        notes: "Shortlist under review.",
+        created_at: "2026-04-02T14:45:00Z"
+      }
+    ];
+
+    const state = {
+      activities: [],
+      applications: [],
+      filteredActivities: [],
+      filteredApplications: [],
+      selectedActivity: null,
+      calendarDate: new Date(),
+      selectedCalendarDate: new Date(),
+      activePage: 'dashboard',
+      applyStep: 1,
+      profile: null,
+      calendarEvents: [],
+      assignments: []
+    };
+
+    const el = (selector, scope = document) => scope.querySelector(selector);
+    const els = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
+
+    function formatDate(dateLike, options = { dateStyle: 'medium' }) {
+      if (!dateLike) return '—';
+      const d = new Date(dateLike);
+      if (Number.isNaN(d.getTime())) return '—';
+      return new Intl.DateTimeFormat('en-KE', options).format(d);
+    }
+
+    function escapeHtml(value = '') {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(text, type = 'info', title = '') {
+      const stack = el('#toastStack');
+      const label = title || (type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Info');
+      if (stack.children.length >= 10) {
+        stack.removeChild(stack.firstElementChild);
+      }
+      const toast = document.createElement('div');
+      toast.className = `app-toast ${type}`;
+      const duration = type === 'error' ? 6500 : 5000;
+      toast.innerHTML = `
+        <div class="app-toast-head">
+          <div class="app-toast-icon"><i class="bi ${type === 'success' ? 'bi-check2-circle' : type === 'error' ? 'bi-x-circle' : 'bi-info-circle'}"></i></div>
+          <div style="min-width:0;">
+            <div class="app-toast-title">${escapeHtml(label)}</div>
+            <div class="app-toast-text">${escapeHtml(text)}</div>
+          </div>
+          <button class="app-toast-close" type="button"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="app-toast-progress" style="animation-duration:${duration}ms;"></div>
+      `;
+      const remove = () => {
+        if (toast.classList.contains('removing')) return;
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 220);
+      };
+      toast.querySelector('.app-toast-close').addEventListener('click', remove);
+      stack.appendChild(toast);
+      setTimeout(remove, duration);
+    }
+
+    async function safeFetchJSON(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        ...options
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || data.detail || 'Request failed');
+      return data;
+    }
+
+    async function loadProfile() {
+      try {
+        const data = await safeFetchJSON(API.me);
+        state.profile = data;
+      } catch (error) {
+        if (ENABLE_DEMO_FALLBACK) {
+          state.profile = {
+            first_name: 'Jeff',
+            last_name: 'Volunteer',
+            phone: '+254700000001',
+            email: 'volunteer@example.com',
+            county: 'Nairobi',
+            username: 'jeff.volunteer',
+            role: 'volunteer',
+            status: 'active',
+            verified: true,
+            reg_code: 'VOL-DEMO-001',
+            created_at: '2026-03-28T09:20:00Z',
+            updated_at: new Date().toISOString(),
+            profile_photo: 'https://i.pravatar.cc/140?img=12'
+          };
+        }
+      }
+
+      if (state.profile) {
+        const displayName = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(' ') || state.profile.name || 'Volunteer';
+        el('#profileNameChip').textContent = displayName;
+        prefillApplyForm();
+        populateSettings(state.profile);
+      }
+    }
+
+    async function loadActivities() {
+      try {
+        const data = await safeFetchJSON(API.activities);
+        state.activities = Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : [];
+      } catch (error) {
+        if (!ENABLE_DEMO_FALLBACK) throw error;
+        state.activities = demoActivities;
+        showToast('Backend activities endpoint is not ready, so demo data is rendering instead.', 'info');
+      }
+      filterActivities();
+    }
+
+    async function loadApplications() {
+      try {
+        const data = await safeFetchJSON(API.applications);
+        state.applications = Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : [];
+      } catch (error) {
+        if (!ENABLE_DEMO_FALLBACK) throw error;
+        state.applications = demoApplications;
+      }
+      filterApplications();
+      renderCalendar();
+      renderDashboard();
+    }
+
+    async function loadCalendarEvents() {
+      try {
+        const data = await safeFetchJSON(API.calendarEvents);
+        state.calendarEvents = Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : [];
+      } catch (error) {
+        if (!ENABLE_DEMO_FALLBACK) throw error;
+        state.calendarEvents = demoCalendarEvents;
+      }
+      renderCalendar();
+    }
+
+    function loadAssignments() {
+      try {
+        const stored = JSON.parse(localStorage.getItem('volunteer-dashboard-assignments') || '[]');
+        state.assignments = Array.isArray(stored) ? stored : [];
+      } catch {
+        state.assignments = [];
+      }
+      renderAssignmentOptions();
+      renderAssignmentsTable();
+      renderCalendar();
+    }
+
+    function persistAssignments() {
+      localStorage.setItem('volunteer-dashboard-assignments', JSON.stringify(state.assignments));
+      renderAssignmentsTable();
+      renderCalendar();
+    }
+
+    function filterActivities() {
+      const search = (el('#globalSearchInput')?.value || '').trim().toLowerCase();
+      const mode = el('#activityStatusFilter')?.value || 'all';
+      const appliedIds = new Set(state.applications.map(app => app.activity_id));
+
+      state.filteredActivities = state.activities.filter(activity => {
+        const matchesSearch = !search || [activity.title, activity.description, activity.slug].filter(Boolean).join(' ').toLowerCase().includes(search);
+        const openSlots = Number(activity.slots_remaining ?? activity.number_of_volunteers ?? 0) > 0;
+        const matchesMode =
+          mode === 'all' ? true :
+          mode === 'open' ? openSlots :
+          mode === 'applied' ? appliedIds.has(activity.id) : true;
+        return matchesSearch && matchesMode;
+      });
+
+      renderActivities();
+      renderDashboard();
+    }
+
+    function filterApplications() {
+      const search = (el('#globalSearchInput')?.value || '').trim().toLowerCase();
+      const status = el('#historyStatusFilter')?.value || 'all';
+      state.filteredApplications = state.applications.filter(app => {
+        const matchesSearch = !search || [app.application_code, app.activity_title, app.notes, app.email, app.county].filter(Boolean).join(' ').toLowerCase().includes(search);
+        const matchesStatus = status === 'all' ? true : app.status === status;
+        return matchesSearch && matchesStatus;
+      });
+
+      renderApplicationHistory();
+      renderDashboard();
+    }
+
+    function createActivityCard(activity, compact = false) {
+      const applied = state.applications.some(app => app.activity_id === activity.id);
+      const remaining = Number(activity.slots_remaining ?? activity.number_of_volunteers ?? 0);
+      return `
+        <article class="activity-card">
+          <div class="activity-image">
+            <img src="${escapeHtml(activity.image_url || 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=900&q=80')}" alt="${escapeHtml(activity.title)}">
+            <span class="activity-chip">${activity.is_active ? 'Active' : 'Inactive'}</span>
+          </div>
+          <div class="activity-body">
+            <h4>${escapeHtml(activity.title)}</h4>
+            <div class="activity-meta">
+              <span><i class="bi bi-people me-1"></i>${escapeHtml(String(activity.number_of_volunteers ?? 0))} needed</span>
+              <span><i class="bi bi-door-open me-1"></i>${escapeHtml(String(remaining))} left</span>
+              <span><i class="bi bi-link-45deg me-1"></i>${escapeHtml(activity.slug || 'activity')}</span>
+            </div>
+            <p class="activity-desc">${escapeHtml(activity.description || 'No description was provided for this activity yet.')}</p>
+            <div class="activity-actions">
+              <button class="ghost-btn flex-grow-1" type="button" onclick="openActivityDetail('${activity.id}')">View</button>
+              <button class="primary-pill-btn flex-grow-1" type="button" ${applied ? 'disabled' : ''} onclick="openApplyFlow('${activity.id}')">${applied ? 'Applied' : 'Apply'}</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderActivities() {
+      const main = el('#activityGridMain');
+      const featured = el('#featuredActivities');
+
+      if (!state.filteredActivities.length) {
+        main.innerHTML = `<div class="mini-state" style="grid-column:1/-1;">No activities matched the current search or filter.</div>`;
+      } else {
+        main.innerHTML = state.filteredActivities.map(activity => createActivityCard(activity)).join('');
+      }
+
+      const featuredItems = state.filteredActivities.slice(0, 2);
+      featured.innerHTML = featuredItems.length
+        ? featuredItems.map(activity => createActivityCard(activity, true)).join('')
+        : `<div class="mini-state" style="grid-column:1/-1;">No featured activities available.</div>`;
+    }
+
+    function renderApplicationHistory() {
+      const tbody = el('#applicationHistoryBody');
+      if (!state.filteredApplications.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No applications found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.filteredApplications.map(app => `
+        <tr>
+          <td>${escapeHtml(app.application_code || 'Pending code')}</td>
+          <td>${escapeHtml(app.activity_title || resolveActivityTitle(app.activity_id))}</td>
+          <td><span class="status-pill ${escapeHtml(app.status || 'pending')}">${escapeHtml(app.status || 'pending')}</span></td>
+          <td>${formatDate(app.created_at, { dateStyle: 'medium', timeStyle: 'short' })}</td>
+          <td>${escapeHtml(app.county || '—')}</td>
+          <td>${escapeHtml(app.notes || '—')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function resolveActivityTitle(activityId) {
+      const activity = state.activities.find(item => item.id === activityId);
+      return activity?.title || 'Volunteer activity';
+    }
+
+
+    function resolveVolunteerName(app) {
+      return [app.first_name, app.last_name].filter(Boolean).join(' ') || app.email || 'Volunteer';
+    }
+
+    function renderAssignmentOptions() {
+      const select = el('#assignmentApprovedSelect');
+      if (!select) return;
+      const approved = state.applications.filter(app => app.status === 'approved');
+      if (!approved.length) {
+        select.innerHTML = '<option value="">No approved volunteers available</option>';
+        return;
+      }
+      select.innerHTML = '<option value="">Select approved volunteer</option>' + approved.map(app => `
+        <option value="${escapeHtml(app.id)}">${escapeHtml(resolveVolunteerName(app))} — ${escapeHtml(app.activity_title || resolveActivityTitle(app.activity_id))}</option>
+      `).join('');
+    }
+
+    function renderAssignmentsTable() {
+      const tbody = el('#assignmentTableBody');
+      if (!tbody) return;
+      if (!state.assignments.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No volunteer day assignments yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = state.assignments.sort((a,b) => new Date(a.assigned_date) - new Date(b.assigned_date)).map(item => `
+        <tr>
+          <td>${escapeHtml(item.volunteer_name)}</td>
+          <td>${escapeHtml(item.activity_title)}</td>
+          <td>${formatDate(item.assigned_date, { dateStyle: 'medium' })}</td>
+          <td>${escapeHtml(item.shift || '—')}</td>
+          <td>${escapeHtml(item.notes || '—')}</td>
+          <td><button class="ghost-btn" type="button" onclick="deleteAssignment('${item.id}')">Remove</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function getGeneralCalendarEventsForDate(dateObj) {
+      return state.calendarEvents.filter(event => {
+        const start = new Date(`${event.start_date}T00:00:00`);
+        const end = new Date(`${event.end_date}T23:59:59`);
+        return dateObj >= start && dateObj <= end;
+      }).sort((a,b) => Number(a.position || 0) - Number(b.position || 0));
+    }
+
+    function getVolunteerAssignmentsForDate(dateObj) {
+      const key = dateObj.toISOString().slice(0,10);
+      return state.assignments.filter(item => item.assigned_date === key);
+    }
+
+    function saveAssignment() {
+      const appId = el('#assignmentApprovedSelect').value;
+      const assignedDate = el('#assignmentDate').value;
+      const shift = el('#assignmentShift').value.trim();
+      const notes = el('#assignmentNotes').value.trim();
+      if (!appId || !assignedDate) {
+        showToast('Pick an approved volunteer and an assignment date first.', 'error');
+        return;
+      }
+      const app = state.applications.find(item => String(item.id) === String(appId));
+      if (!app) {
+        showToast('Selected approved volunteer record was not found.', 'error');
+        return;
+      }
+      state.assignments.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        application_id: app.id,
+        volunteer_name: resolveVolunteerName(app),
+        activity_title: app.activity_title || resolveActivityTitle(app.activity_id),
+        assigned_date: assignedDate,
+        shift,
+        notes
+      });
+      persistAssignments();
+      el('#assignmentShift').value = '';
+      el('#assignmentNotes').value = '';
+      showToast('Volunteer day assignment saved.', 'success');
+    }
+
+    function deleteAssignment(id) {
+      state.assignments = state.assignments.filter(item => item.id !== id);
+      persistAssignments();
+      showToast('Volunteer day assignment removed.', 'info');
+    }
+
+    function getApprovedCalendarItems() {
+      return state.applications
+        .filter(app => app.status === 'approved' && (app.scheduled_start || app.activity_date || app.event_date))
+        .map(app => ({
+          ...app,
+          start: new Date(app.scheduled_start || app.activity_date || app.event_date),
+          end: new Date(app.scheduled_end || app.scheduled_start || app.activity_date || app.event_date)
+        }))
+        .filter(item => !Number.isNaN(item.start.getTime()));
+    }
+
+    function renderCalendar() {
+      const date = new Date(state.calendarDate);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startIndex = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+      const prevMonthLast = new Date(year, month, 0).getDate();
+      const assignmentCount = state.assignments.length;
+      const generalEventsCount = state.calendarEvents.length;
+
+      el('#calendarMiniTitle').textContent = new Intl.DateTimeFormat('en-KE', { month: 'long', year: 'numeric' }).format(date);
+      el('#calendarMainTitle').textContent = new Intl.DateTimeFormat('en-KE', { month: 'long', year: 'numeric' }).format(date);
+      el('#calendarApprovedMeta').textContent = `${assignmentCount} assignments · ${generalEventsCount} general events`;
+
+      const miniCells = [];
+      const mainCells = [];
+      const today = new Date();
+      const isSameDate = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+
+      for (let i = 0; i < 42; i++) {
+        let cellDate;
+        let muted = false;
+        if (i < startIndex) {
+          cellDate = new Date(year, month - 1, prevMonthLast - startIndex + i + 1);
+          muted = true;
+        } else if (i >= startIndex + totalDays) {
+          cellDate = new Date(year, month + 1, i - (startIndex + totalDays) + 1);
+          muted = true;
+        } else {
+          cellDate = new Date(year, month, i - startIndex + 1);
+        }
+
+        const volunteerAssignments = getVolunteerAssignmentsForDate(cellDate);
+        const generalEvents = getGeneralCalendarEventsForDate(cellDate);
+        const todayClass = isSameDate(cellDate, today) ? 'today' : '';
+        const selectedClass = isSameDate(cellDate, state.selectedCalendarDate) ? 'selected' : '';
+        const hasEvent = volunteerAssignments.length || generalEvents.length;
+
+        miniCells.push(`<button class="mini-day ${muted ? 'muted' : ''} ${todayClass} ${selectedClass} ${hasEvent ? 'has-event' : ''}" data-calendar-date="${cellDate.toISOString()}">${cellDate.getDate()}</button>`);
+
+        const volunteerHtml = volunteerAssignments.slice(0,2).map(item => `<div class="calendar-entry approved" title="${escapeHtml(item.volunteer_name)} · ${escapeHtml(item.activity_title)}">${escapeHtml(item.volunteer_name)} · ${escapeHtml(item.shift || item.activity_title)}</div>`).join('');
+        const generalHtml = generalEvents.slice(0,2).map(item => `<div class="calendar-entry" style="background:${escapeHtml(item.color || '#2563eb')};" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>`).join('');
+        const moreCount = Math.max(0, volunteerAssignments.length - 2) + Math.max(0, generalEvents.length - 2);
+
+        mainCells.push(`
+          <div class="calendar-cell ${muted ? 'muted' : ''} ${todayClass}">
+            <div class="calendar-date-row">
+              <span class="calendar-date-num">${cellDate.getDate()}</span>
+              ${hasEvent ? `<small class="text-mute">${volunteerAssignments.length + generalEvents.length}</small>` : ''}
+            </div>
+            ${volunteerHtml}
+            ${generalHtml}
+            ${moreCount > 0 ? `<div class="text-mute small">+${moreCount} more</div>` : ''}
+          </div>
+        `);
+      }
+
+      el('#calendarMiniGrid').innerHTML = miniCells.join('');
+      el('#calendarMainGrid').innerHTML = mainCells.join('');
+
+      els('[data-calendar-date]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.selectedCalendarDate = new Date(button.dataset.calendarDate);
+          el('#assignmentDate').value = button.dataset.calendarDate.slice(0,10);
+          renderCalendar();
+        });
+      });
+    }
+
+    function prefillApplyForm() {
+      const p = state.profile || {};
+      el('#applyFirstName').value = p.first_name || '';
+      el('#applyLastName').value = p.last_name || '';
+      el('#applyPhone').value = p.phone || '';
+      el('#applyEmail').value = p.email || '';
+      el('#applyCounty').value = p.county || '';
+    }
+
+    function openActivityDetail(activityId) {
+      const activity = state.activities.find(item => item.id === activityId);
+      if (!activity) return;
+      state.selectedActivity = activity;
+      el('#detailTitle').textContent = activity.title;
+      el('#detailImage').src = activity.image_url || 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=900&q=80';
+      el('#detailDescription').textContent = activity.description || 'No activity description available.';
+      el('#detailMeta').innerHTML = `
+        <span><i class="bi bi-link-45deg me-1"></i>${escapeHtml(activity.slug || 'activity')}</span>
+        <span><i class="bi bi-people me-1"></i>${escapeHtml(String(activity.number_of_volunteers ?? 0))} needed</span>
+        <span><i class="bi bi-door-open me-1"></i>${escapeHtml(String(activity.slots_remaining ?? activity.number_of_volunteers ?? 0))} left</span>
+      `;
+      el('#detailList').innerHTML = `
+        <div class="detail-item"><small>Activity slug</small><strong>${escapeHtml(activity.slug || '—')}</strong></div>
+        <div class="detail-item"><small>Total volunteers needed</small><strong>${escapeHtml(String(activity.number_of_volunteers ?? 0))}</strong></div>
+        <div class="detail-item"><small>Current state</small><strong>${activity.is_active ? 'Active' : 'Inactive'}</strong></div>
+        <div class="detail-item"><small>Activity ID</small><strong>${escapeHtml(activity.id)}</strong></div>
+      `;
+      el('#detailDrawerBackdrop').classList.add('active');
+    }
+
+    function closeActivityDetail() {
+      el('#detailDrawerBackdrop').classList.remove('active');
+    }
+
+    function setApplyStep(step) {
+      state.applyStep = step;
+      els('.apply-step').forEach(section => section.classList.toggle('active', Number(section.dataset.step) === step));
+      els('[data-step-indicator]').forEach(dot => dot.classList.toggle('active', Number(dot.dataset.stepIndicator) === step));
+      if (step === 3) fillReview();
+    }
+
+    function fillReview() {
+      const grid = el('#reviewGrid');
+      const activity = state.selectedActivity || {};
+      const values = {
+        'First name': el('#applyFirstName').value.trim(),
+        'Last name': el('#applyLastName').value.trim(),
+        'Phone': el('#applyPhone').value.trim(),
+        'Email': el('#applyEmail').value.trim(),
+        'County': el('#applyCounty').value.trim(),
+        'ID / Passport': el('#applyIdPassport').value.trim(),
+        'Activity': activity.title || '—',
+        'Activity slug': activity.slug || '—'
+      };
+      grid.innerHTML = Object.entries(values).map(([label, value]) => `
+        <div class="detail-item"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value || '—')}</strong></div>
+      `).join('');
+    }
+
+    function openApplyFlow(activityId) {
+      const activity = state.activities.find(item => item.id === activityId);
+      if (!activity) return;
+      state.selectedActivity = activity;
+      el('#applyActivityId').value = activity.id;
+      el('#applyPreviewImage').src = activity.image_url || 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=900&q=80';
+      el('#applyPreviewTitle').textContent = activity.title;
+      el('#applyPreviewDescription').textContent = activity.description || 'No activity description available.';
+      el('#applyPreviewMeta').innerHTML = `
+        <span><i class="bi bi-link-45deg me-1"></i>${escapeHtml(activity.slug || 'activity')}</span>
+        <span><i class="bi bi-people me-1"></i>${escapeHtml(String(activity.number_of_volunteers ?? 0))} needed</span>
+      `;
+      setApplyStep(1);
+      el('#applyModalBackdrop').classList.add('active');
+    }
+
+    function closeApplyFlow() {
+      el('#applyModalBackdrop').classList.remove('active');
+      setApplyStep(1);
+    }
+
+
+    function populateSettings(profile = {}) {
+      const first = profile.first_name || 'Volunteer';
+      const last = profile.last_name || '';
+      const fullName = [first, last].filter(Boolean).join(' ');
+      const email = profile.email || 'user@email.com';
+      const phone = profile.phone || '';
+      const username = profile.username || (email.split('@')[0] || 'volunteer');
+      const role = profile.role || 'volunteer';
+      const status = profile.status || 'active';
+      const verified = Boolean(profile.verified ?? true);
+      const photo = profile.profile_photo || profile.passport_photo_url || 'https://i.pravatar.cc/140?img=12';
+      const created = profile.created_at || new Date().toISOString();
+      const updated = profile.updated_at || new Date().toISOString();
+      const regCode = profile.reg_code || 'VOL-DEMO-001';
+
+      el('#settingsProfilePhoto').src = photo;
+      el('#settingsFullName').textContent = fullName;
+      el('#settingsEmailHero').textContent = email;
+      el('#settingsRoleHero').textContent = role;
+      el('#settingsStatusHero').textContent = status;
+      el('#settingsVerifiedHero').textContent = verified ? 'Verified' : 'Not verified';
+      el('#settingsUserId').value = profile.id || '';
+      el('#settingsProfilePhotoInput').value = photo;
+      el('#settingsFirstName').value = first;
+      el('#settingsLastName').value = last;
+      el('#settingsUsername').value = username;
+      el('#settingsRole').value = role;
+      el('#settingsStatus').value = status;
+      el('#settingsVerified').checked = verified;
+      el('#settingsEmail').value = email;
+      el('#settingsPhone').value = phone;
+      el('#settingsRegCode').value = regCode;
+      el('#settingsFullNameReadOnly').value = fullName;
+      el('#settingsCreatedAt').value = formatDate(created, { dateStyle: 'medium', timeStyle: 'short' });
+      el('#settingsLastSeen').value = profile.last_seen ? formatDate(profile.last_seen, { dateStyle: 'medium', timeStyle: 'short' }) : 'Just now';
+      el('#settingsUpdatedAt').value = formatDate(updated, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function settingsNotice(text, type='success') {
+      const box = el('#settingsMessage');
+      box.className = `settings-message ${type}`;
+      box.textContent = text;
+      box.classList.remove('is-hidden');
+      setTimeout(() => box.classList.add('is-hidden'), 4500);
+    }
+
+    function initSettings() {
+      els('[data-settings-tab]').forEach(btn => btn.addEventListener('click', () => {
+        const target = btn.dataset.settingsTab;
+        els('[data-settings-tab]').forEach(x => x.classList.toggle('active', x === btn));
+        els('[data-settings-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.settingsPanel === target));
+      }));
+
+      el('#refreshSettingsBtn').addEventListener('click', () => {
+        populateSettings(state.profile || {});
+        settingsNotice('Settings panel refreshed.', 'success');
+      });
+      el('#resetProfileSettingsBtn').addEventListener('click', () => populateSettings(state.profile || {}));
+      el('#resetDetailsSettingsBtn').addEventListener('click', () => populateSettings(state.profile || {}));
+      el('#resetPasswordSettingsBtn').addEventListener('click', () => {
+        el('#settingsCurrentPassword').value = '';
+        el('#settingsNewPassword').value = '';
+        el('#settingsConfirmPassword').value = '';
+      });
+      el('#settingsProfileForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.profile = {
+          ...(state.profile || {}),
+          first_name: el('#settingsFirstName').value.trim(),
+          last_name: el('#settingsLastName').value.trim(),
+          username: el('#settingsUsername').value.trim(),
+          role: el('#settingsRole').value,
+          status: el('#settingsStatus').value,
+          verified: el('#settingsVerified').checked,
+          profile_photo: el('#settingsProfilePhotoInput').value.trim(),
+          updated_at: new Date().toISOString()
+        };
+        populateSettings(state.profile);
+        showToast('Profile settings updated in the UI. Hook this form to your backend to persist.', 'success');
+      });
+      el('#settingsDetailsForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.profile = {
+          ...(state.profile || {}),
+          email: el('#settingsEmail').value.trim(),
+          phone: el('#settingsPhone').value.trim(),
+          updated_at: new Date().toISOString()
+        };
+        populateSettings(state.profile);
+        showToast('Detail settings updated in the UI. Persist with your API next.', 'success');
+      });
+      el('#settingsPasswordForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (el('#settingsNewPassword').value !== el('#settingsConfirmPassword').value) {
+          showToast('New password and confirmation do not match.', 'error');
+          return;
+        }
+        if (el('#settingsNewPassword').value.length < 8) {
+          showToast('New password must be at least 8 characters.', 'error');
+          return;
+        }
+        showToast('Password form validated. Wire it to your password endpoint.', 'success');
+        el('#settingsCurrentPassword').value = '';
+        el('#settingsNewPassword').value = '';
+        el('#settingsConfirmPassword').value = '';
+      });
+    }
+
+    async function submitApplication(event) {
+      event.preventDefault();
+      const activity = state.selectedActivity;
+      if (!activity) return;
+
+      const payload = {
+        first_name: el('#applyFirstName').value.trim(),
+        last_name: el('#applyLastName').value.trim(),
+        phone: el('#applyPhone').value.trim(),
+        email: el('#applyEmail').value.trim(),
+        county: el('#applyCounty').value.trim(),
+        id_passport: el('#applyIdPassport').value.trim(),
+        passport_photo_url: el('#applyPassportPhotoUrl').value.trim() || null,
+        activity_id: activity.id,
+        source: 'dashboard'
+      };
+
+      const submitBtn = el('#submitApplicationBtn');
+      const original = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+
+      try {
+        if (ENABLE_DEMO_FALLBACK) {
+          throw new Error('demo-fallback');
+        }
+
+        await safeFetchJSON(API.applications, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        showToast(`Application for ${activity.title} submitted successfully.`, 'success');
+      } catch (error) {
+        if (ENABLE_DEMO_FALLBACK) {
+          state.applications.unshift({
+            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+            application_code: `VAC-DEMO-${String(state.applications.length + 1).padStart(3, '0')}`,
+            activity_id: activity.id,
+            activity_title: activity.title,
+            status: 'pending',
+            notes: 'Submitted from volunteer dashboard.',
+            created_at: new Date().toISOString(),
+            ...payload
+          });
+          showToast(`Application for ${activity.title} was added in demo mode. Wire the POST endpoint to persist it for real.`, 'success');
+        } else {
+          showToast(error.message || 'Failed to submit application.', 'error');
+          return;
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = original;
+      }
+
+      closeApplyFlow();
+      filterApplications();
+      filterActivities();
+      renderCalendar();
+    }
+
+    function switchPage(page) {
+      state.activePage = page;
+      els('.volunteer-nav-item').forEach(item => item.classList.toggle('active', item.dataset.pageTarget === page));
+      els('.page-pane').forEach(pane => pane.classList.toggle('active', pane.dataset.page === page));
+    }
+
+    function initNavigation() {
+      els('.volunteer-nav-item').forEach(item => item.addEventListener('click', () => switchPage(item.dataset.pageTarget)));
+      els('[data-jump-page]').forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.jumpPage)));
+    }
+
+    function initTheme() {
+      const applyTheme = (isDark) => document.body.classList.toggle('dark-mode', isDark);
+      const saved = localStorage.getItem('volunteer-dashboard-theme');
+      applyTheme(saved === 'dark');
+      [el('#themeToggle'), el('#themeToggleSide')].forEach(btn => btn?.addEventListener('click', () => {
+        const isDark = !document.body.classList.contains('dark-mode');
+        applyTheme(isDark);
+        localStorage.setItem('volunteer-dashboard-theme', isDark ? 'dark' : 'light');
+      }));
+    }
+
+    function initCalendarControls() {
+      el('#calendarPrevBtn').addEventListener('click', () => {
+        state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() - 1, 1);
+        renderCalendar();
+      });
+      el('#calendarNextBtn').addEventListener('click', () => {
+        state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + 1, 1);
+        renderCalendar();
+      });
+      el('#calendarTodayBtn').addEventListener('click', () => {
+        state.calendarDate = new Date();
+        state.selectedCalendarDate = new Date();
+        renderCalendar();
+      });
+    }
+
+    function initApplyModal() {
+      el('#closeApplyModal').addEventListener('click', closeApplyFlow);
+      els('[data-next-step]').forEach(btn => btn.addEventListener('click', () => setApplyStep(Number(btn.dataset.nextStep))));
+      els('[data-prev-step]').forEach(btn => btn.addEventListener('click', () => setApplyStep(Number(btn.dataset.prevStep))));
+      el('#applyForm').addEventListener('submit', submitApplication);
+      el('#applyModalBackdrop').addEventListener('click', (e) => { if (e.target.id === 'applyModalBackdrop') closeApplyFlow(); });
+    }
+
+    function initDetails() {
+      el('#closeDetailDrawer').addEventListener('click', closeActivityDetail);
+      el('#detailCloseBtn').addEventListener('click', closeActivityDetail);
+      el('#detailApplyBtn').addEventListener('click', () => {
+        closeActivityDetail();
+        if (state.selectedActivity) openApplyFlow(state.selectedActivity.id);
+      });
+      el('#detailDrawerBackdrop').addEventListener('click', (e) => { if (e.target.id === 'detailDrawerBackdrop') closeActivityDetail(); });
+    }
+
+    function initFilters() {
+      el('#globalSearchInput').addEventListener('input', () => {
+        filterActivities();
+        filterApplications();
+      });
+      el('#activityStatusFilter').addEventListener('change', filterActivities);
+      el('#historyStatusFilter').addEventListener('change', filterApplications);
+      el('#refreshActivitiesBtn').addEventListener('click', loadActivities);
+      el('#refreshHistoryBtn').addEventListener('click', loadApplications);
+      el('#saveAssignmentBtn')?.addEventListener('click', saveAssignment);
+      el('#logoutBtn').addEventListener('click', () => showToast('Wire this button to your real logout endpoint.', 'info'));
+    }
+
+    function setTodayLabel() {
+      el('#todayLabel').textContent = new Intl.DateTimeFormat('en-KE', {
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+      }).format(new Date());
+    }
+
+    async function boot() {
+      setTodayLabel();
+      initNavigation();
+      initTheme();
+      initCalendarControls();
+      initApplyModal();
+      initDetails();
+      initFilters();
+      initSettings();
+      loadAssignments();
+      await loadProfile();
+      await loadActivities();
+      await loadApplications();
+      await loadCalendarEvents();
+      populateSettings(state.profile || {});
+      el('#assignmentDate').value = new Date().toISOString().slice(0,10);
+      showToast('Volunteer dashboard upgraded: toasts, settings page and layered calendar are live.', 'success');
+    }
+
+    window.openActivityDetail = openActivityDetail;
+    window.openApplyFlow = openApplyFlow;
+    window.deleteAssignment = deleteAssignment;
+
+    document.addEventListener('DOMContentLoaded', boot);
+  </script>
+</body>
+</html>

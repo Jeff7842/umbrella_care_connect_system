@@ -60,3 +60,94 @@ class UserManagement(models.Model):
 
     def __str__(self):
         return self.username
+
+import uuid
+from django.db import models
+
+
+class DonorProfile(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField("UserManagement", db_column="user_id", on_delete=models.CASCADE)
+    country = models.CharField(max_length=120, blank=True, null=True)
+    city = models.CharField(max_length=120, blank=True, null=True)
+    gender = models.CharField(max_length=50, blank=True, null=True)
+    donor_type = models.CharField(max_length=50, blank=True, null=True)
+    donation_preference = models.CharField(max_length=50, blank=True, null=True)
+    donor_note = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "donor_profiles"
+
+
+class VolunteerProfile(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField("UserManagement", db_column="user_id", on_delete=models.CASCADE)
+    country = models.CharField(max_length=120, blank=True, null=True)
+    city = models.CharField(max_length=120, blank=True, null=True)
+    gender = models.CharField(max_length=50, blank=True, null=True)
+    skills = models.TextField(blank=True, null=True)
+    availability = models.JSONField(default=list)
+    areas_of_interest = models.JSONField(default=list)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "volunteer_profiles"
+
+
+class AuthOtp(models.Model):
+    PURPOSE_CHOICES = [
+        ("signin", "Sign In"),
+        ("email_verification", "Email Verification"),
+        ("password_reset", "Password Reset"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey("UserManagement", db_column="user_id", on_delete=models.CASCADE)
+    purpose = models.CharField(max_length=50, choices=PURPOSE_CHOICES)
+    otp_request_token = models.UUIDField(default=uuid.uuid4)
+    otp_hash = models.CharField(max_length=255)
+    email_snapshot = models.EmailField(max_length=255, blank=True, null=True)
+    code_last2 = models.CharField(max_length=2, blank=True, null=True)
+    attempts = models.IntegerField(default=0)
+    max_attempts = models.IntegerField(default=5)
+    is_active = models.BooleanField(default=True)
+    used_at = models.DateTimeField(blank=True, null=True)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "auth_otps"
+
+
+class AuthSession(models.Model):
+    STATUS_CHOICES = [
+      ("active", "Active"),
+      ("expired", "Expired"),
+      ("used", "Used"),
+      ("revoked", "Revoked"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey("UserManagement", db_column="user_id", on_delete=models.CASCADE)
+    session_request_token = models.UUIDField(default=uuid.uuid4)
+    session_key_hash = models.CharField(max_length=255, unique=True)
+    token_hint = models.CharField(max_length=4, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField()
+    last_seen_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+    ended_at = models.DateTimeField(blank=True, null=True)
+    active_duration_seconds = models.IntegerField(default=0)
+    metadata = models.JSONField(default=dict)
+
+    class Meta:
+        managed = False
+        db_table = "auth_sessions"
