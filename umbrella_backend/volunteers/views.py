@@ -1,7 +1,7 @@
 import json
-from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -24,22 +24,16 @@ def _user_name(user):
     )
 
 
-def _is_admin(user):
-    return user.is_authenticated and (
-        getattr(user, "is_staff", False) or getattr(user, "role", "") == "admin"
-    )
+def _is_authenticated_user(request):
+    return hasattr(request, "user") and getattr(request.user, "is_authenticated", False)
 
 
-def _is_volunteer(user):
-    return user.is_authenticated and getattr(user, "role", "") == "volunteer"
-
-
-@login_required
+# -----------------------------
+# Volunteer-facing endpoints
+# Keep these role checks for later proper auth work
+# -----------------------------
 @require_GET
 def volunteer_opportunities_api(request):
-    if not _is_volunteer(request.user) and not _is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
     events = VolunteerEvent.objects.filter(
         is_active=True,
         event_date__gte=timezone.now()
@@ -48,7 +42,7 @@ def volunteer_opportunities_api(request):
     ).order_by("event_date")
 
     data = []
-    current_profile = getattr(request.user, "volunteer_profile", None)
+    current_profile = getattr(request.user, "volunteer_profile", None) if _is_authenticated_user(request) else None
 
     for event in events:
         already_signed_up = False
@@ -73,10 +67,12 @@ def volunteer_opportunities_api(request):
     return JsonResponse({"results": data}, status=200)
 
 
-@login_required
 @require_http_methods(["POST"])
 def volunteer_signup_api(request, event_id):
-    if not _is_volunteer(request.user):
+    if not _is_authenticated_user(request):
+        return JsonResponse({"error": "Authentication required"}, status=401)
+
+    if getattr(request.user, "role", "") != "volunteer":
         return JsonResponse({"error": "Only volunteers can sign up"}, status=403)
 
     profile = getattr(request.user, "volunteer_profile", None)
@@ -114,10 +110,12 @@ def volunteer_signup_api(request, event_id):
     }, status=201)
 
 
-@login_required
 @require_GET
 def volunteer_history_api(request):
-    if not _is_volunteer(request.user):
+    if not _is_authenticated_user(request):
+        return JsonResponse({"error": "Authentication required"}, status=401)
+
+    if getattr(request.user, "role", "") != "volunteer":
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     profile = getattr(request.user, "volunteer_profile", None)
@@ -141,12 +139,12 @@ def volunteer_history_api(request):
     return JsonResponse({"results": data}, status=200)
 
 
-@login_required
+# -----------------------------
+# Admin-facing endpoints
+# DEV STYLE: open like your user APIs for now
+# -----------------------------
 @require_GET
 def admin_volunteer_stats_api(request):
-    if not _is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
     total_volunteers = VolunteerProfile.objects.filter(is_active=True).count()
     active_events = VolunteerEvent.objects.filter(
         is_active=True,
@@ -164,15 +162,11 @@ def admin_volunteer_stats_api(request):
         "active_events": active_events,
         "total_signups": total_signups,
         "attended_count": attended_count,
-    })
+    }, status=200)
 
 
-@login_required
 @require_GET
 def admin_volunteers_api(request):
-    if not _is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
     search = request.GET.get("search", "").strip()
 
     qs = VolunteerProfile.objects.select_related("user").all().order_by("-created_at")
@@ -180,6 +174,8 @@ def admin_volunteers_api(request):
         qs = qs.filter(
             Q(user__email__icontains=search) |
             Q(user__username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
             Q(skills__icontains=search) |
             Q(phone__icontains=search)
         )
@@ -189,6 +185,8 @@ def admin_volunteers_api(request):
         results.append({
             "id": profile.id,
             "name": _user_name(profile.user),
+            "first_name": getattr(profile.user, "first_name", ""),
+            "last_name": getattr(profile.user, "last_name", ""),
             "email": getattr(profile.user, "email", ""),
             "phone": profile.phone,
             "skills": profile.skills,
@@ -201,12 +199,85 @@ def admin_volunteers_api(request):
     return JsonResponse({"results": results}, status=200)
 
 
-@login_required
+@require_http_methods(["GET", "PATCH", "DELETE"])
+def admin_volunteer_detail_api(request, volunteer_id):
+    profile = get_object_or_404(
+        VolunteerProfile.objects.select_related("user"),
+        id=volunteer_id
+    )
+
+    if request.method == "GET":
+        return JsonResponse({
+            "id": profile.id,
+            "name": _user_name(profile.user),
+            "first_name": getattr(profile.user, "first_name", ""),
+            "last_name": getattr(profile.user, "last_name", ""),
+            "email": getattr(profile.user, "email", ""),
+            "phone": profile.phone,
+            "skills": profile.skills,
+            "availability": profile.availability,
+            "is_active": profile.is_active,
+            "signups_count": profile.signups.count(),
+            "created_at": profile.created_at.isoformat(),
+        }, status=200)
+
+    if request.method == "PATCH":
+        data = _json_body(request)
+
+        first_name = (data.get("first_name") or "").strip()
+        last_name = (data.get("last_name") or "").strip()
+        email = (data.get("email") or "").strip()
+
+        if email:
+            existing = profile.user.__class__.objects.filter(email=email).exclude(pk=profile.user.pk).exists()
+            if existing:
+                return JsonResponse({"error": "Email already exists"}, status=400)
+            profile.user.email = email
+
+        if hasattr(profile.user, "first_name"):
+            profile.user.first_name = first_name
+        if hasattr(profile.user, "last_name"):
+            profile.user.last_name = last_name
+
+        profile.user.save()
+
+        profile.phone = (data.get("phone") or "").strip()
+        profile.skills = (data.get("skills") or "").strip()
+        profile.availability = (data.get("availability") or "").strip()
+        profile.save()
+
+        return JsonResponse({"message": "Volunteer updated successfully"}, status=200)
+
+    profile.user.delete()
+    return JsonResponse({"message": "Volunteer deleted successfully"}, status=200)
+
+
+@require_http_methods(["PATCH"])
+def admin_volunteer_freeze_api(request, volunteer_id):
+    profile = get_object_or_404(VolunteerProfile, id=volunteer_id)
+
+    data = _json_body(request)
+    requested = data.get("is_active")
+
+    if requested is None:
+        profile.is_active = not profile.is_active
+    else:
+        profile.is_active = bool(requested)
+
+    profile.save(update_fields=["is_active"])
+
+    if hasattr(profile.user, "is_active"):
+        profile.user.is_active = profile.is_active
+        profile.user.save(update_fields=["is_active"])
+
+    return JsonResponse({
+        "message": "Volunteer status updated successfully",
+        "is_active": profile.is_active,
+    }, status=200)
+
+
 @require_http_methods(["GET", "POST"])
 def admin_events_api(request):
-    if not _is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
     if request.method == "GET":
         events = VolunteerEvent.objects.annotate(
             signup_count=Count("signups", filter=~Q(signups__status=VolunteerSignup.Status.CANCELLED))
@@ -254,13 +325,15 @@ def admin_events_api(request):
     if slots_total < 1:
         return JsonResponse({"error": "Slots total must be at least 1"}, status=400)
 
+    created_by = request.user if _is_authenticated_user(request) else None
+
     event = VolunteerEvent.objects.create(
         title=title,
         description=description,
         location=location,
         event_date=event_dt,
         slots_total=slots_total,
-        created_by=request.user,
+        created_by=created_by,
     )
 
     return JsonResponse({
@@ -272,16 +345,9 @@ def admin_events_api(request):
     }, status=201)
 
 
-@login_required
 @require_GET
 def admin_event_signups_api(request, event_id):
-    if not _is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
-    try:
-        event = VolunteerEvent.objects.get(id=event_id)
-    except VolunteerEvent.DoesNotExist:
-        return JsonResponse({"error": "Event not found"}, status=404)
+    event = get_object_or_404(VolunteerEvent, id=event_id)
 
     signups = event.signups.select_related("volunteer__user").order_by("-created_at")
     results = [{
@@ -296,15 +362,11 @@ def admin_event_signups_api(request, event_id):
     return JsonResponse({
         "event": {"id": event.id, "title": event.title},
         "results": results,
-    })
+    }, status=200)
 
 
-@login_required
 @require_http_methods(["PATCH"])
 def admin_signup_status_api(request, signup_id):
-    if not _is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
     data = _json_body(request)
     status_value = data.get("status")
 
@@ -315,11 +377,7 @@ def admin_signup_status_api(request, signup_id):
     }:
         return JsonResponse({"error": "Invalid status"}, status=400)
 
-    try:
-        signup = VolunteerSignup.objects.get(id=signup_id)
-    except VolunteerSignup.DoesNotExist:
-        return JsonResponse({"error": "Signup not found"}, status=404)
-
+    signup = get_object_or_404(VolunteerSignup, id=signup_id)
     signup.status = status_value
     signup.save(update_fields=["status"])
 

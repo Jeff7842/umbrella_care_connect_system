@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
+LOGIN_URL = "/signin/"
+LOGIN_REDIRECT_URL = "/dashboard/"
 
 
 # Application definition
@@ -46,6 +48,7 @@ INSTALLED_APPS = [
     'stock',
     'volunteers',
     'calendarapp',
+    'reports',
 ]
 
 MIDDLEWARE = [

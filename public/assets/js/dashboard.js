@@ -1,5 +1,6 @@
-const API_BASE_URL= /*process.env.API_URL || "http://localhost:8000" || "http://127.0.0.1:8000"*/ "";
+//const API_BASE_URL= /*process.env.API_URL || "http://localhost:8000" || "http://127.0.0.1:8000"*/ "";
 //const API_BASE_URL = window.location.origin;
+const API_BASE_URL= "http://127.0.0.1:8000";
 
 const dateEl = document.getElementById("currentDate");
   const themeToggle = document.getElementById("themeToggle");
@@ -71,58 +72,253 @@ const dateEl = document.getElementById("currentDate");
   }
 
   function initReportPreview() {
-    const reportSelect = document.getElementById('reportType');
-    const stat1 = document.getElementById('stat1');
-    const stat2 = document.getElementById('stat2');
-    const stat3 = document.getElementById('stat3');
-    const stat4 = document.getElementById('stat4');
-    const stat5 = document.getElementById('stat5');
-    const detailBlock = document.getElementById('detailedReportBlock');
-    const genReportBtn = document.getElementById('genReportBtn');
+  const reportSelect = document.getElementById('reportType');
+  const stat1 = document.getElementById('stat1');
+  const stat2 = document.getElementById('stat2');
+  const stat3 = document.getElementById('stat3');
+  const stat4 = document.getElementById('stat4');
+  const stat5 = document.getElementById('stat5');
+  const detailBlock = document.getElementById('detailedReportBlock');
+  const genReportBtn = document.getElementById('genReportBtn');
 
-    if (!reportSelect) return;
+  // Optional date inputs if you add them in HTML later
+  const reportStartDate = document.getElementById('startDate');
+const reportEndDate = document.getElementById('endDate');
+const exportBtn = document.getElementById('exportBtn');
 
-    function updateReportPreview() {
-      const type = reportSelect.value;
-      if (type === 'Donations report') {
-        stat1.innerText = '486'; stat2.innerText = '34'; stat3.innerText = '212'; stat4.innerText = '142'; stat5.innerText = '29';
-        detailBlock.innerHTML = `<div><i class="bi bi-cash-stack fs-3 me-2"></i> <strong>Donations summary</strong></div>
-          <div class="progress-tag"><i class="bi bi-calendar-week"></i> cash: 312K KES · in-kind: 174 items</div>
-          <div class="progress-tag"><i class="bi bi-graph-up-arrow"></i> 23% increase from last month</div>
-          <div class="ms-auto"><i class="bi bi-download"></i> export</div>`;
-      } else if (type === 'Volunteer & duties') {
-        stat1.innerText = '38'; stat2.innerText = '12'; stat3.innerText = '316'; stat4.innerText = '46'; stat5.innerText = '9';
-        detailBlock.innerHTML = `<div><i class="bi bi-person-workspace fs-3 me-2"></i> <strong>Volunteer duties · activeness</strong></div>
-          <div class="progress-tag"><i class="bi bi-calendar-check"></i> 24 duties scheduled, 19 completed</div>
-          <div class="progress-tag"><i class="bi bi-heart-pulse"></i> top volunteer: Mary N. (12 hrs)</div>
-          <div class="ms-auto"><i class="bi bi-file-spreadsheet"></i> full log</div>`;
-      } else if (type === 'Needs & fulfillment') {
-        stat1.innerText = '52'; stat2.innerText = '34'; stat3.innerText = '18'; stat4.innerText = '26'; stat5.innerText = '11';
-        detailBlock.innerHTML = `<div><i class="bi bi-box-seam fs-3 me-2"></i> <strong>Needs fulfillment rate</strong></div>
-          <div class="progress-tag">Food packs: 78% · Education: 42% · Medical: 90%</div>
-          <div class="progress-tag">Most urgent: School uniforms (need 60, got 12)</div>
-          <div class="ms-auto"><i class="bi bi-printer"></i> print</div>`;
-      } else if (type === 'Donor activeness') {
-        stat1.innerText = '210'; stat2.innerText = '148'; stat3.innerText = '62'; stat4.innerText = '87'; stat5.innerText = '13';
-        detailBlock.innerHTML = `<div><i class="bi bi-people-fill fs-3 me-2"></i> <strong>Donor engagement</strong></div>
-          <div class="progress-tag">Repeat donors: 64% · new donors this month: 28</div>
-          <div class="progress-tag">avg donation size: 3,200 KES</div>
-          <div class="ms-auto"><i class="bi bi-graph-up"></i> trends</div>`;
-      } else {
-        stat1.innerText = '—'; stat2.innerText = '—'; stat3.innerText = '—'; stat4.innerText = '—'; stat5.innerText = '—';
-        detailBlock.innerHTML = `<div><i class="bi bi-sliders2"></i> select a report type</div>`;
-      }
+  if (!reportSelect || !detailBlock) return;
+
+  const REPORTS_API = `${API_BASE_URL}/api/reports/`;
+  const REPORTS_EXPORT_API = `${API_BASE_URL}/api/reports/export/`;
+
+  function getTodayISO() {
+    const d = new Date();
+    return d.toISOString().split("T")[0];
+  }
+
+  function getFirstDayOfMonthISO() {
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().split("T")[0];
+  }
+
+  function mapReportType(uiValue) {
+    const value = (uiValue || "").toLowerCase().trim();
+
+    if (value.includes("donation")) return "donations";
+    if (value.includes("volunteer")) return "volunteers";
+    if (value.includes("need")) return "needs";
+
+    // "Donor activeness" is not yet in backend
+    if (value.includes("donor")) return "unsupported_donor_activity";
+
+    return "donations";
+  }
+
+  function buildQuery(reportType) {
+    const params = new URLSearchParams();
+    params.set("report_type", reportType);
+
+    if (reportStartDate?.value) params.set("start_date", reportStartDate.value);
+    if (reportEndDate?.value) params.set("end_date", reportEndDate.value);
+
+    return params.toString();
+  }
+
+  function setStat(el, value) {
+    if (!el) return;
+    el.innerText = value ?? "—";
+  }
+
+  function renderStats(reportType, summary = {}) {
+    if (reportType === "donations") {
+      setStat(stat1, summary.count ?? 0);
+      setStat(stat2, summary.cash_total ?? 0);
+      setStat(stat3, summary.in_kind_count ?? 0);
+      setStat(stat4, "—");
+      setStat(stat5, "—");
+      return;
     }
 
-    reportSelect.addEventListener('change', updateReportPreview);
-    genReportBtn?.addEventListener('click', function (e) {
-      e.preventDefault();
-      updateReportPreview();
-      alert('Report generated (demo) – check figures updated.');
+    if (reportType === "volunteers") {
+      setStat(stat1, summary.count ?? 0);
+      setStat(stat2, summary.confirmed_count ?? 0);
+      setStat(stat3, summary.attended_count ?? 0);
+      setStat(stat4, "—");
+      setStat(stat5, "—");
+      return;
+    }
+
+    if (reportType === "needs") {
+      setStat(stat1, summary.count ?? 0);
+      setStat(stat2, summary.total_needed ?? 0);
+      setStat(stat3, summary.total_received ?? 0);
+      setStat(stat4, "—");
+      setStat(stat5, "—");
+      return;
+    }
+
+    setStat(stat1, "—");
+    setStat(stat2, "—");
+    setStat(stat3, "—");
+    setStat(stat4, "—");
+    setStat(stat5, "—");
+  }
+
+  function renderTable(headers = [], rows = []) {
+    if (!headers.length) {
+      return `<div class="text-muted">No report columns available.</div>`;
+    }
+
+    if (!rows.length) {
+      return `<div class="text-muted mt-2">No records found for this period.</div>`;
+    }
+
+    return `
+      <div class="table-responsive mt-3">
+        <table class="table table-sm table-bordered align-middle mb-0">
+          <thead>
+            <tr>
+              ${headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.slice(0, 15).map((row) => `
+              <tr>
+                ${row.map((cell) => `<td>${escapeHtml(String(cell ?? "-"))}</td>`).join("")}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+      ${rows.length > 15 ? `<div class="small text-muted mt-2">Showing first 15 rows. Export CSV for the full report.</div>` : ""}
+    `;
+  }
+
+  function renderUnsupportedReport() {
+    renderStats("unsupported", {});
+    detailBlock.innerHTML = `
+      <div><i class="bi bi-info-circle fs-3 me-2"></i> <strong>Donor activeness</strong></div>
+      <div class="progress-tag">This report type is not connected to the backend yet.</div>
+      <div class="progress-tag">Supported now: Donations, Volunteer & duties, Needs & fulfillment.</div>
+    `;
+  }
+
+  function renderError(message) {
+    renderStats("unsupported", {});
+    detailBlock.innerHTML = `
+      <div><i class="bi bi-exclamation-triangle fs-3 me-2"></i> <strong>Report failed</strong></div>
+      <div class="progress-tag">${escapeHtml(message || "Unable to load report.")}</div>
+    `;
+  }
+
+  function wireExportButton(reportType) {
+    const exportBtn = document.getElementById("exportReportCsvBtn");
+    if (!exportBtn) return;
+
+    exportBtn.addEventListener("click", () => {
+      const query = buildQuery(reportType);
+      window.open(`${REPORTS_EXPORT_API}?${query}`, "_blank");
+    });
+  }
+
+  async function loadReport(showFeedback = false) {
+  const mappedType = mapReportType(reportSelect.value);
+
+  if (mappedType === "unsupported_donor_activity") {
+    renderUnsupportedReport();
+    return;
+  }
+
+  try {
+    if (genReportBtn) {
+      genReportBtn.disabled = true;
+      genReportBtn.innerText = "Loading...";
+    }
+
+    const url = `${REPORTS_API}?${buildQuery(mappedType)}`;
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Accept": "application/json",
+      },
     });
 
-    updateReportPreview();
+    const contentType = response.headers.get("content-type") || "";
+    const rawText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${rawText.slice(0, 300)}`);
+    }
+
+    if (!contentType.includes("application/json")) {
+      throw new Error(`Expected JSON but got: ${rawText.slice(0, 300)}`);
+    }
+
+    const data = JSON.parse(rawText);
+
+    renderStats(mappedType, data.summary || {});
+
+    detailBlock.innerHTML = `
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <div><i class="bi bi-bar-chart-line fs-3 me-2"></i> <strong>${escapeHtml(data.summary?.title || "Report")}</strong></div>
+          <div class="progress-tag">
+            Period: ${escapeHtml(data.start_date || "-")} to ${escapeHtml(data.end_date || "-")}
+          </div>
+        </div>
+      </div>
+      ${renderTable(data.headers || [], data.rows || [])}
+    `;
+
+    if (showFeedback) {
+      alert("Report generated successfully.");
+    }
+  } catch (error) {
+    console.error("Report load error:", error);
+    renderError(error.message || "Failed to load report.");
+  } finally {
+    if (genReportBtn) {
+      genReportBtn.disabled = false;
+      genReportBtn.innerText = "Generate Report";
+    }
   }
+}
+
+  // Optional defaults if those inputs exist
+  if (reportStartDate && !reportStartDate.value) {
+    reportStartDate.value = getFirstDayOfMonthISO();
+  }
+
+  if (reportEndDate && !reportEndDate.value) {
+    reportEndDate.value = getTodayISO();
+  }
+
+  reportSelect.addEventListener('change', () => loadReport(false));
+  reportStartDate?.addEventListener('change', () => loadReport(false));
+  reportEndDate?.addEventListener('change', () => loadReport(false));
+
+  genReportBtn?.addEventListener('click', function (e) {
+    e.preventDefault();
+    loadReport(true);
+  });
+
+  exportBtn?.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const mappedType = mapReportType(reportSelect.value);
+  if (mappedType === "unsupported_donor_activity") {
+    alert("This report type is not connected yet.");
+    return;
+  }
+
+  const query = buildQuery(mappedType);
+  window.open(`${REPORTS_EXPORT_API}?${query}`, "_blank");
+});
+
+  loadReport(false);
+}
 
   if (localStorage.getItem('umbrellaTheme') === 'dark') setTheme('dark');
   else setTheme('light');
@@ -641,6 +837,8 @@ addUserForm?.addEventListener("submit", async (e) => {
     showAddUserMessage(error.message || "Failed to create user.", "error");
   }
 });
+
+fetchUsers();
 
 /* =========================================
    MESSAGES PAGE INTERACTION
@@ -2178,7 +2376,7 @@ function renderNeeds() {
     );
   }
 
-  function updateStockEntries() {
+  /*function updateStockEntries() {
     const visibleRows = getVisibleRows();
     const total = visibleRows.length;
 
@@ -2187,7 +2385,7 @@ function renderNeeds() {
         ? `Showing 1 to ${total} of ${total} entries`
         : "Showing 0 to 0 of 0 entries";
     }
-  }
+  }*/
 
   function wireStockToggles() {
     stockTableBody.querySelectorAll(".stock-toggle input").forEach((toggle) => {
@@ -2204,6 +2402,7 @@ function renderNeeds() {
   }
 
   function updateStockEntries(start = 0, end = 0, total = 0) {
+    
   if (stockEntriesInfo) {
     stockEntriesInfo.textContent = total
       ? `Showing ${start} to ${end} of ${total} entries`
@@ -4141,3 +4340,238 @@ document.querySelectorAll(".stock-nav-link").forEach((link) => {
 
   fetchSettingsUser();
 })();
+
+function initReportPreview() {
+  const reportSelect = document.getElementById('reportType');
+  const stat1 = document.getElementById('stat1');
+  const stat2 = document.getElementById('stat2');
+  const stat3 = document.getElementById('stat3');
+  const stat4 = document.getElementById('stat4');
+  const stat5 = document.getElementById('stat5');
+  const detailBlock = document.getElementById('detailedReportBlock');
+  const genReportBtn = document.getElementById('genReportBtn');
+
+  // Optional date inputs if you add them in HTML later
+  const reportStartDate = document.getElementById('reportStartDate');
+  const reportEndDate = document.getElementById('reportEndDate');
+
+  if (!reportSelect || !detailBlock) return;
+
+  const REPORTS_API = `${API_BASE_URL}/api/reports/`;
+  const REPORTS_EXPORT_API = `${API_BASE_URL}/api/reports/export/`;
+
+  function getTodayISO() {
+    const d = new Date();
+    return d.toISOString().split("T")[0];
+  }
+
+  function getFirstDayOfMonthISO() {
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().split("T")[0];
+  }
+
+  function mapReportType(uiValue) {
+    const value = (uiValue || "").toLowerCase().trim();
+
+    if (value.includes("donation")) return "donations";
+    if (value.includes("volunteer")) return "volunteers";
+    if (value.includes("need")) return "needs";
+
+    // "Donor activeness" is not yet in backend
+    if (value.includes("donor")) return "unsupported_donor_activity";
+
+    return "donations";
+  }
+
+  function buildQuery(reportType) {
+    const params = new URLSearchParams();
+    params.set("report_type", reportType);
+
+    if (reportStartDate?.value) params.set("start_date", reportStartDate.value);
+    if (reportEndDate?.value) params.set("end_date", reportEndDate.value);
+
+    return params.toString();
+  }
+
+  function setStat(el, value) {
+    if (!el) return;
+    el.innerText = value ?? "—";
+  }
+
+  function renderStats(reportType, summary = {}) {
+    if (reportType === "donations") {
+      setStat(stat1, summary.count ?? 0);
+      setStat(stat2, summary.cash_total ?? 0);
+      setStat(stat3, summary.in_kind_count ?? 0);
+      setStat(stat4, "—");
+      setStat(stat5, "—");
+      return;
+    }
+
+    if (reportType === "volunteers") {
+      setStat(stat1, summary.count ?? 0);
+      setStat(stat2, summary.confirmed_count ?? 0);
+      setStat(stat3, summary.attended_count ?? 0);
+      setStat(stat4, "—");
+      setStat(stat5, "—");
+      return;
+    }
+
+    if (reportType === "needs") {
+      setStat(stat1, summary.count ?? 0);
+      setStat(stat2, summary.total_needed ?? 0);
+      setStat(stat3, summary.total_received ?? 0);
+      setStat(stat4, "—");
+      setStat(stat5, "—");
+      return;
+    }
+
+    setStat(stat1, "—");
+    setStat(stat2, "—");
+    setStat(stat3, "—");
+    setStat(stat4, "—");
+    setStat(stat5, "—");
+  }
+
+  function renderTable(headers = [], rows = []) {
+    if (!headers.length) {
+      return `<div class="text-muted">No report columns available.</div>`;
+    }
+
+    if (!rows.length) {
+      return `<div class="text-muted mt-2">No records found for this period.</div>`;
+    }
+
+    return `
+      <div class="table-responsive mt-3">
+        <table class="table table-sm table-bordered align-middle mb-0">
+          <thead>
+            <tr>
+              ${headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.slice(0, 15).map((row) => `
+              <tr>
+                ${row.map((cell) => `<td>${escapeHtml(String(cell ?? "-"))}</td>`).join("")}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+      ${rows.length > 15 ? `<div class="small text-muted mt-2">Showing first 15 rows. Export CSV for the full report.</div>` : ""}
+    `;
+  }
+
+  function renderUnsupportedReport() {
+    renderStats("unsupported", {});
+    detailBlock.innerHTML = `
+      <div><i class="bi bi-info-circle fs-3 me-2"></i> <strong>Donor activeness</strong></div>
+      <div class="progress-tag">This report type is not connected to the backend yet.</div>
+      <div class="progress-tag">Supported now: Donations, Volunteer & duties, Needs & fulfillment.</div>
+    `;
+  }
+
+  function renderError(message) {
+    renderStats("unsupported", {});
+    detailBlock.innerHTML = `
+      <div><i class="bi bi-exclamation-triangle fs-3 me-2"></i> <strong>Report failed</strong></div>
+      <div class="progress-tag">${escapeHtml(message || "Unable to load report.")}</div>
+    `;
+  }
+
+  function wireExportButton(reportType) {
+    const exportBtn = document.getElementById("exportReportCsvBtn");
+    if (!exportBtn) return;
+
+    exportBtn.addEventListener("click", () => {
+      const query = buildQuery(reportType);
+      window.open(`${REPORTS_EXPORT_API}?${query}`, "_blank");
+    });
+  }
+
+  async function loadReport(showFeedback = false) {
+    const mappedType = mapReportType(reportSelect.value);
+
+    if (mappedType === "unsupported_donor_activity") {
+      renderUnsupportedReport();
+      return;
+    }
+
+    try {
+      if (genReportBtn) {
+        genReportBtn.disabled = true;
+        genReportBtn.innerText = "Loading...";
+      }
+
+      const response = await fetch(`${REPORTS_API}?${buildQuery(mappedType)}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load report (${response.status})`);
+      }
+
+      const data = await response.json();
+
+      renderStats(mappedType, data.summary || {});
+
+      detailBlock.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <div><i class="bi bi-bar-chart-line fs-3 me-2"></i> <strong>${escapeHtml(data.summary?.title || "Report")}</strong></div>
+            <div class="progress-tag">
+              Period: ${escapeHtml(data.start_date || "-")} to ${escapeHtml(data.end_date || "-")}
+            </div>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="exportReportCsvBtn">
+              <i class="bi bi-download me-1"></i> Export CSV
+            </button>
+          </div>
+        </div>
+
+        ${renderTable(data.headers || [], data.rows || [])}
+      `;
+
+      wireExportButton(mappedType);
+
+      if (showFeedback) {
+        alert("Report generated successfully.");
+      }
+    } catch (error) {
+      console.error("Report load error:", error);
+      renderError(error.message || "Failed to load report.");
+    } finally {
+      if (genReportBtn) {
+        genReportBtn.disabled = false;
+        genReportBtn.innerText = "Generate Report";
+      }
+    }
+  }
+
+  // Optional defaults if those inputs exist
+  if (reportStartDate && !reportStartDate.value) {
+    reportStartDate.value = getFirstDayOfMonthISO();
+  }
+
+  if (reportEndDate && !reportEndDate.value) {
+    reportEndDate.value = getTodayISO();
+  }
+
+  reportSelect.addEventListener('change', () => loadReport(false));
+  reportStartDate?.addEventListener('change', () => loadReport(false));
+  reportEndDate?.addEventListener('change', () => loadReport(false));
+
+  genReportBtn?.addEventListener('click', function (e) {
+    e.preventDefault();
+    loadReport(true);
+  });
+
+  loadReport(false);
+}

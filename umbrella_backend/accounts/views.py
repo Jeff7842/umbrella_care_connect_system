@@ -3,6 +3,8 @@ from django.utils import timezone
 from django.db.models import Q, F
 from django.contrib.sessions.backends.db import SessionStore
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+
 
 from rest_framework.views import APIView
 from rest_framework.response import Response

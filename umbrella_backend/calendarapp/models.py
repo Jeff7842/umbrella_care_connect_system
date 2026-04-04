@@ -1,5 +1,5 @@
+import uuid
 from django.db import models
-
 
 class CalendarEvent(models.Model):
     STATUS_CHOICES = [
@@ -9,7 +9,7 @@ class CalendarEvent(models.Model):
         ("completed", "Completed"),
     ]
 
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.TextField()
     description = models.TextField(blank=True, null=True)
     start_date = models.DateField()
@@ -21,8 +21,8 @@ class CalendarEvent(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="scheduled")
     position = models.IntegerField(default=0)
     created_by = models.UUIDField(blank=True, null=True)
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False

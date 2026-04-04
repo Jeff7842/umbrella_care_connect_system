@@ -20,6 +20,7 @@ class CalendarEventSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
     def validate(self, attrs):
         start_date = attrs.get("start_date", getattr(self.instance, "start_date", None))

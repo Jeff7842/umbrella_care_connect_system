@@ -344,49 +344,83 @@
   </div>
 </section>
 
-    <section class="app-page" data-page="reports">
-        <div class="page-header-card">
-        <div class="panel-title"><i class="bi bi-file-spreadsheet" style="color:var(--brand);"></i> Reports & analytics</div>
+  <section class="app-page" data-page="reports">
+  <div class="report-page">
+    <div class="reports-header">
+      <div>
+        <h2><i class="bi bi-file-earmark-bar-graph me-2"></i>Report Generation</h2>
+        <p class="text-mute">Generate donations, needs, and volunteer reports.</p>
       </div>
-      <div class="reports-section mt-10">
-        <div class="reports-header">
-          <h3><i class="bi bi-file-spreadsheet" style="color:var(--brand);"></i> Reports & analytics</h3>
-          <div class="dropdown-group">
-            <select class="dropdown-custom" id="reportType">
-              <option selected>Donations report</option>
-              <option>Volunteer & duties</option>
-              <option>Needs & fulfillment</option>
-              <option>Donor activeness</option>
-              <option>Stock / inventory</option>
-              <option>Financial summary</option>
-            </select>
-            <select class="dropdown-custom">
-              <option>Last 30 days</option>
-              <option>This quarter</option>
-              <option>Year to date</option>
-              <option>Custom range</option>
-            </select>
-            <button class="btn-generate" id="genReportBtn"><i class="bi bi-file-earmark-pdf me-2"></i>Generate</button>
-          </div>
-        </div>
 
-        <div class="report-cards" id="reportCards">
-          <div class="report-mini"><span class="title">Total Donations</span><span class="figure" id="stat1">486</span><span class="text-mute d-block">this month</span></div>
-          <div class="report-mini"><span class="title">Needs fulfilled</span><span class="figure" id="stat2">34</span><span class="text-mute d-block">of 52</span></div>
-          <div class="report-mini"><span class="title">Volunteer hrs</span><span class="figure" id="stat3">212</span><span class="text-mute d-block">this quarter</span></div>
-          <div class="report-mini"><span class="title">Active donors</span><span class="figure" id="stat4">142</span><span class="text-mute d-block">↑12%</span></div>
-          <div class="report-mini"><span class="title">Duty signups</span><span class="figure" id="stat5">29</span><span class="text-mute d-block">pending 7</span></div>
-        </div>
+      <div class="dropdown-group">
+        <select class="dropdown-custom" id="reportType">
+          <option value="donations" selected>Donations</option>
+          <option value="needs">Needs & fulfillment</option>
+          <option value="volunteers">Volunteer participation</option>
+        </select>
 
-        <div class="vol-activeness" id="detailedReportBlock">
-          <div><i class="bi bi-person-check fs-3 me-2"></i> <strong>Volunteer activeness (last 30d)</strong></div>
-          <div class="progress-tag"><i class="bi bi-calendar-week"></i> 18 active volunteers · 42 duties completed</div>
-          <div class="progress-tag"><i class="bi bi-graph-up-arrow"></i> 86% attendance rate</div>
-          <div class="ms-auto"><i class="bi bi-download"></i> export raw</div>
-        </div>
+        <input type="date" id="startDate" class="dropdown-custom" />
+        <input type="date" id="endDate" class="dropdown-custom" />
+
+        <button class="btn-generate" id="genReportBtn" type="button">
+          <i class="bi bi-bar-chart-line me-2"></i>Generate
+        </button>
+
+        <button class="btn-generate btn-export" id="exportBtn" type="button">
+          <i class="bi bi-download me-2"></i>Export CSV
+        </button>
       </div>
-    </section>
+    </div>
 
+    <div class="report-cards" id="reportCards">
+      <div class="report-mini">
+        <span class="title">Metric 1</span>
+        <span class="figure" id="stat1">—</span>
+        <span class="text-mute d-block">summary</span>
+      </div>
+
+      <div class="report-mini">
+        <span class="title">Metric 2</span>
+        <span class="figure" id="stat2">—</span>
+        <span class="text-mute d-block">summary</span>
+      </div>
+
+      <div class="report-mini">
+        <span class="title">Metric 3</span>
+        <span class="figure" id="stat3">—</span>
+        <span class="text-mute d-block">summary</span>
+      </div>
+
+      <div class="report-mini">
+        <span class="title">Metric 4</span>
+        <span class="figure" id="stat4">—</span>
+        <span class="text-mute d-block">summary</span>
+      </div>
+
+      <div class="report-mini">
+        <span class="title">Metric 5</span>
+        <span class="figure" id="stat5">—</span>
+        <span class="text-mute d-block">summary</span>
+      </div>
+    </div>
+
+    <div class="report-detail-card" id="detailedReportBlock">
+      <div class="report-placeholder">
+        <i class="bi bi-sliders2 me-2"></i>
+        Select a report and click Generate.
+      </div>
+    </div>
+
+    <div class="report-table-card">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle mb-0" id="reportTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
     <section class="app-page" data-page="user-management">
   <div class="page-header-card">
   <div class="user-toolbar-actions">

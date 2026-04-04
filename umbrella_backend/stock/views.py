@@ -8,7 +8,7 @@ from .models import StockItem, StockTransaction
 from .services import issue_stock, adjust_stock
 
 
-@login_required
+
 def stock_list_view(request):
     stock_items = StockItem.objects.all().order_by("name")
     recent_transactions = StockTransaction.objects.select_related(
@@ -30,7 +30,7 @@ def stock_list_view(request):
     return render(request, "stock/stock_list.html", context)
 
 
-@login_required
+
 def stock_add_view(request):
     if request.method == "POST":
         form = StockItemForm(request.POST)
@@ -44,7 +44,7 @@ def stock_add_view(request):
     return render(request, "stock/stock_add.html", {"form": form})
 
 
-@login_required
+
 def stock_issue_view(request):
     if request.method == "POST":
         form = StockIssueForm(request.POST)
@@ -70,7 +70,7 @@ def stock_issue_view(request):
     return render(request, "stock/stock_issue.html", {"form": form})
 
 
-@login_required
+
 def stock_adjust_view(request):
     if request.method == "POST":
         form = StockAdjustmentForm(request.POST)

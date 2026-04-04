@@ -1,0 +1,74 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f6fa;
+  margin: 0;
+  padding: 20px;
+}
+
+.report-page {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filters label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: end;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background: #f0f0f0;
+}
